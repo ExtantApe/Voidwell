@@ -1,0 +1,12 @@
+name: Waystation
+version: 0.4.0-standin
+main: com.extantape.waystation.StandinPlugin
+api-version: '26.1'
+description: Test-only stand-in for Waystation's hand-over API. Never shipped.
+commands:
+  standin:
+    permission: standin.use
+    usage: /standin gate <player> <world> | /standin landing on|off
+permissions:
+  standin.use:
+    default: op

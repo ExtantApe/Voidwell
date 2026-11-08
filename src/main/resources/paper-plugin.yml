@@ -1,0 +1,33 @@
+name: Voidwell
+version: '${version}'
+main: com.extantape.voidwell.VoidwellPlugin
+api-version: '26.1'
+description: A OneBlock add-on. Walk in through the Waystation, ring your island's bell to leave, and turn what the void takes into rewards.
+website: https://github.com/ExtantApe/Voidwell
+# /voidwell is registered with Brigadier in code, so there is no commands section.
+dependencies:
+  server:
+    # The OneBlock gate and the landing spot outside it.
+    Waystation:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    # MrMarL's OneBlock 1.6.4. Its plugin name is "Oneblock".
+    Oneblock:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    # Optional. Its circle permissions decide who may visit or team up with whom.
+    HouseRules:
+      load: BEFORE
+      required: false
+permissions:
+  voidwell.use:
+    description: Use /voidwell to see the void meter and choose rewards. The way bell needs no permission.
+    default: true
+  voidwell.admin:
+    description: /voidwell reload, status, meter and bell. Also lets an admin change things on any island.
+    default: op
+  voidwell.oneblock-commands:
+    description: Type OneBlock's /ob commands. Players without it are pointed to the gate and the way bell instead.
+    default: op

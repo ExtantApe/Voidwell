@@ -1,0 +1,72 @@
+# Voidwell settings. After editing, run /voidwell reload.
+config-version: 1
+
+# The way bell: how players leave their island for the Waystation.
+way-bell:
+  # Rings needed, each a separate right-click, all within this many seconds. One ring alone never does anything.
+  rings: 3
+  within-seconds: 6
+  # Rings closer together than this don't count, so holding the button down isn't a shortcut.
+  min-gap-ticks: 8
+  # Where the bell goes, measured from the island's one block. It never replaces a block: if that spot is taken,
+  # the nearest free spot is used.
+  offset: {x: 0, y: 0, z: -2}
+  # The block under the bell.
+  post: CRYING_OBSIDIAN
+  # The floating label above the bell. Seen from this many blocks away.
+  label-range: 12
+  # How dark the label's backing is, 0 to 255. 0 is Minecraft's own faint one.
+  label-backing: 96
+
+# How long items dropped in the OneBlock world last, in minutes of the island being loaded. Vanilla is 5.
+# Rounded to a multiple of 5. Items on an island nobody is near don't age at all.
+item-life-minutes: 30
+
+# The void meter.
+meter:
+  # Points for a full meter, which offers a reward. It holds up to twice this, so a big sacrifice isn't wasted.
+  full: 100
+  # Most points one player can charge in a day (server time). Items still go into the void after that.
+  daily-cap: 200
+  # Each item of a type already given today is worth this much of the one before. 0.9 means ten diamonds
+  # are worth about 6.5 diamonds, and a stack of 64 is worth about 9.9.
+  repeat-factor: 0.9
+  # Damaged gear is worth this much at least, in proportion to what's left of its durability.
+  min-durability-factor: 0.25
+
+# Rewards offered when the meter is full. The player picks one of three. Set any to false to stop offering it.
+rewards:
+  featherfall:
+    enabled: true
+    minutes: 5
+  void-safe:
+    enabled: true
+    # While it lasts, falling into the void lifts the player back to their bell instead.
+    minutes: 2
+  bountiful-block:
+    enabled: true
+    # Double drops from the player's own one block.
+    minutes: 5
+  void-gives-back:
+    enabled: true
+    # The chance, shown to the player as "1 in N", that half of the weapons and armour they've given the void
+    # come back, each with one enchantment one level above the usual maximum.
+    one-in: 3
+    # If it doesn't come back, the meter starts again this full, in percent, and the gear stays in the void
+    # for another try.
+    consolation-percent: 25
+  island-travel:
+    enabled: true
+    minutes: 5
+
+# Visiting other islands, and teams. Both need HouseRules circles: two players must share one.
+# If HouseRules has no circles, or either player is offline, the answer is no.
+social:
+  invite-seconds: 60
+  # Most players on one island, the owner included.
+  max-team-size: 4
+
+# Saves after a death or a bell trip, so a crash can't roll a player back into a duplicate or a loss.
+crash-safety:
+  # Also save the OneBlock world's chunks after a death on an island, so the dropped items are on disk.
+  save-world-after-death: true
