@@ -4,7 +4,7 @@ A OneBlock add-on for Paper. Players walk into OneBlock through the Waystation, 
 
 Voidwell is a working title.
 
-**Status:** pre-release. It passes all 73 of its bot checks on a throwaway Paper 26.2 server, with OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and HouseRules 0.1.1. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Waystation 0.4.0 isn't released yet, so the tests use a stand-in plugin with the same event and service. They have been checked against the real 0.4.0 branch's source, but not run with it. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
+**Status:** pre-release. It passes all 75 of its bot checks on a throwaway Paper 26.2 server, with OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and HouseRules 0.1.1. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Waystation 0.4.0 isn't released yet, so the tests use a stand-in plugin with the same event and service. They have been checked against the real 0.4.0 branch's source, but not run with it. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
 
 ## What it does
 
@@ -79,7 +79,7 @@ Bot tests (`test/suite.mjs`) on Paper 26.2, on 127.0.0.1, counting items after e
 - First visit, the bell (one ring, slow rings, hitting it, TNT), the trip out and back, with the same inventory, XP, health and hunger.
 - Island deaths: drops kept for 25 minutes and gone after 30, respawn outside the gate despite a respawn point, and the lobby inventory untouched.
 - Void deaths and throwing: exact meter values, nothing counted until it's gone, picking items back up, a stack of cobblestone, other players' items.
-- Every reward, ending on time. Travel between two kids, an adult never offered a kid's island or the other way round, visitors unable to break blocks, sending visitors home. Teams: an invite from the bell, joining, leaving through the shared bell.
+- Every reward, ending on time. "The void gives back" both ways: a loss gives nothing and starts the meter again 25% full, and the same gear then comes back on a win. Travel between two kids, an adult never offered a kid's island or the other way round, visitors unable to break blocks, sending visitors home. Teams: an invite from the bell, joining, leaving through the shared bell.
 - `/ob` refused and hidden for players, still there for admins.
 - `kill -9` right after a death, right after the bell, and in the middle of "the void gives back". Nothing was lost or duplicated. A clean restart keeps meters, bells and running powers.
 
@@ -88,7 +88,6 @@ Not tested yet:
 - Anything with a player on Paper 26.3, for the reason above. It awaits a newer bot client or a real one.
 - The real Waystation 0.4.0 jar, as opposed to the stand-in.
 - A real client: whether the bell looks and feels deliberate and is easy to find, how the meter and labels read day and night and for colour-blind players, whether payouts feel exciting and a void death feels like a consolation.
-- The "not this time" result of "the void gives back". Its odds are a setting, and the tests set them to always win.
 
 ## Build
 

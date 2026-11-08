@@ -379,6 +379,23 @@ const tests = {
     await a.toss(a.registry.itemsByName.golden_sword.id, null, 1); await a.toss(a.registry.itemsByName.stone_sword.id, null, 1)
     await sleep(11000)
     await platform(true)
+    // First the losing side. The odds go to 1 in 100 for this one take (the most the config allows), so it
+    // loses 99 times in 100. A win here is reported as such, not as a pass.
+    const cfg = s.path('plugins/Voidwell/config.yml')
+    writeFileSync(cfg, readFileSync(cfg, 'utf8').replace('    one-in: 1\n', '    one-in: 100\n'))
+    await s.run('voidwell reload', /Voidwell/); await sleep(500)
+    await s.run('voidwell meter Ash 0', /meter is now/)
+    const lossBefore = count(a)
+    await takeReward(a, 'void-gives-back')
+    const lost = a.chatLog.some(l => /Not this time/.test(l))
+    if (!lost) check('payouts: "not this time" (the 1 in 100 win came up; run it again)', false)
+    else {
+      check('payouts: "not this time" says so and gives nothing', count(a) === lossBefore, `${count(a) - lossBefore} items`)
+      check('payouts: "not this time" starts the meter again 25% full', Math.abs(meterOf(a) - 25) < 0.01, `meter ${meterOf(a)}`)
+    }
+    writeFileSync(cfg, readFileSync(cfg, 'utf8').replace('    one-in: 100\n', '    one-in: 1\n'))
+    await s.run('voidwell reload', /Voidwell/); await sleep(500)
+    // Then the winning side, with the same gear: after a loss it's still there for another try.
     const gearBefore = count(a)
     await takeReward(a, 'void-gives-back')
     await sleep(1500)
