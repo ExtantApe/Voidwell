@@ -151,6 +151,20 @@ async function invData(name) {
 }
 
 const tests = {
+  /** Server-only checks, for versions bots can't stay connected to (26.3 through ViaVersion). */
+  async serverOnly() {
+    check('server: Voidwell enabled', /Enabling Voidwell v/.test(s.log) && !/Error occurred while enabling Voidwell/.test(s.log))
+    await sleep(12000) // OneBlock loads its world a few seconds after startup
+    const m = s.mark(); s.cmd('voidwell status'); await sleep(2000)
+    const out = s.since(m)
+    check('server: OneBlock world found and Waystation landing ready', /OneBlock world: oneblock/.test(out) && /Waystation landing: ready/.test(out), out.split('\n').filter(l => / - /.test(l)).join(' / '))
+    check('server: no problems reported', /No problems found/.test(out))
+    const r = await s.run('standin gate Nobody oneblock', /no such player|handled=/)
+    check('server: hand-over command path loads', !!r)
+    const startup = s.log.split('\n').filter(l => /\[Voidwell\]/.test(l) && /WARN/.test(l))
+    check('server: no startup warnings once set up', startup.length === 0, startup.join(' / '))
+  },
+
   async firstVisit() {
     const a = await bot('Ash')
     await s.run('give Ash diamond 5', /Gave/)
@@ -600,8 +614,9 @@ const tests = {
 
 try {
   await setup()
+  const botless = process.env.SERVER_ONLY === '1'
   for (const [name, fn] of Object.entries(tests)) {
-    if (only.length && !only.includes(name)) continue
+    if (botless ? name !== 'serverOnly' : (only.length ? !only.includes(name) : name === 'serverOnly' && false)) continue
     console.log(`--- ${name}`)
     try { await fn() } catch (e) { check(name + ' (ran to the end)', false, e.message.slice(0, 600)) }
   }

@@ -47,7 +47,7 @@ export class Server {
     writeFileSync(this.path('eula.txt'), 'eula=true\n')
     writeFileSync(this.path('server.properties'), [
       'server-ip=127.0.0.1', `server-port=${PORT}`, 'online-mode=false', 'level-type=minecraft\\:flat',
-      'spawn-protection=0', 'enable-rcon=false', 'enable-query=false', 'max-players=10', 'view-distance=4',
+      'spawn-protection=0', 'enable-rcon=false', 'white-list=false', 'enforce-whitelist=false', 'enable-query=false', 'max-players=10', 'view-distance=4',
       'simulation-distance=4', 'gamemode=survival', 'difficulty=easy', 'spawn-monsters=false', 'allow-flight=true',
     ].join('\n') + '\n')
     mkdirSync(this.path('plugins/HouseRules'), { recursive: true })

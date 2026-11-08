@@ -35,3 +35,11 @@ The owner's decisions for Voidwell, with dates. Later work follows these without
 - OneBlock's `rebirth_on_the_island` must be `false`. Voidwell also overrides the respawn spot itself.
 - Voidwell blocks `/ob` only when a player types it, and hides it from tab-complete. Players keep `oneblock.join`, so the `ob join` Voidwell runs on their behalf still works.
 - Circles come from the `houserules.circle.<name>` permissions HouseRules registers. If no circles exist, or either player is offline, travel and invites are refused. When a check can't decide, the answer is no.
+- Waystation's `landing()` is two blocks in front of the station gate, clear of its trigger (Waystation session, 2026-11-08).
+- The bell is a vanilla bell on a crying obsidian post, two blocks from the one block, and never replaces a block. A label above it says what it does. Rings closer together than 8 ticks don't count, so holding the button down for about a second also works. That is still deliberate.
+- Sneak-ringing the bell opens the island menu: the meter and rewards, visits on or off, sending visitors home, inviting and managing teammates, and travel.
+- Island death drops that later fall into the void charge the meter of the player who died: lost to the void by accident, the same as a void death. Items nobody threw or dropped by dying, such as one-block drops, never count.
+- Items that can never be picked up (for example the copy `/give` shows and removes at once) are left to despawn normally. Keeping them made duplicates.
+- Visitors can look but not touch on an island that isn't theirs. This holds whether they came by island travel or walked or bridged there, because OneBlock's `protection: false` lets players reach other islands.
+- Powers run in real time, so logging out or a restart neither stops nor stretches them.
+- "The void gives back" with no gear in the pool keeps the meter full and offers again, rather than spending it on nothing.
