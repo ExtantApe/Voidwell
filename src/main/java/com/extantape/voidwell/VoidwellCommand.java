@@ -67,6 +67,27 @@ final class VoidwellCommand {
                                             if (!d.offer.isEmpty()) plugin.meter.announceFull(p);
                                             return 1;
                                         }))))
+                .then(Commands.literal("offer").requires(s -> s.getSender().hasPermission("voidwell.admin"))
+                        .then(Commands.argument("player", ArgumentTypes.player())
+                                .then(Commands.argument("rewards", StringArgumentType.greedyString()).executes(c -> {
+                                    Player p = c.getArgument("player", PlayerSelectorArgumentResolver.class).resolve(c.getSource()).getFirst();
+                                    PlayerData d = plugin.store.get(p.getUniqueId());
+                                    d.offer.clear();
+                                    var allowed = plugin.rewards.eligible(d);
+                                    for (String id : StringArgumentType.getString(c, "rewards").split(" ")) {
+                                        var r = com.extantape.voidwell.reward.Reward.byId(id);
+                                        if (r != null && allowed.contains(r) && d.offer.size() < 3) d.offer.add(id);
+                                    }
+                                    if (d.offer.isEmpty()) {
+                                        c.getSource().getSender().sendMessage("Voidwell: none of those can be offered to " + p.getName() + " now. Rewards: featherfall, void-safe, bountiful-block, void-gives-back (needs gear given to the void), island-travel (needs HouseRules circles). Turned-off rewards are never offered.");
+                                        return 0;
+                                    }
+                                    d.meter.points = Math.max(d.meter.points, plugin.settings.full);
+                                    plugin.store.save(d);
+                                    plugin.meter.announceFull(p);
+                                    c.getSource().getSender().sendMessage("Voidwell: offered " + p.getName() + " " + String.join(", ", d.offer) + ".");
+                                    return 1;
+                                }))))
                 .then(Commands.literal("bell").requires(s -> s.getSender().hasPermission("voidwell.admin"))
                         .then(Commands.argument("player", ArgumentTypes.player()).executes(c -> {
                             Player p = c.getArgument("player", PlayerSelectorArgumentResolver.class).resolve(c.getSource()).getFirst();

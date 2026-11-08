@@ -115,6 +115,9 @@ public final class DeathListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDespawn(ItemDespawnEvent e) {
         if (!plugin.bridge.inWorld(e.getLocation())) return;
+        // Items nobody can pick up are for show, such as the copy /give makes and removes at once.
+        // Keeping those would turn them into real, duplicate items.
+        if (e.getEntity().getPickupDelay() >= Short.MAX_VALUE || e.getEntity().isUnlimitedLifetime()) return;
         var pdc = e.getEntity().getPersistentDataContainer();
         int done = pdc.getOrDefault(lives, PersistentDataType.INTEGER, 0) + 1;
         if (done < plugin.settings.itemLifeSteps) {

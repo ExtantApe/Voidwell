@@ -146,6 +146,14 @@ public final class Rewards {
         PlayerData d = plugin.store.get(p.getUniqueId());
         if (!d.offer.contains(r.id)) return;
         var s = plugin.settings;
+        if (r == Reward.VOID_GIVES_BACK && d.pool.isEmpty()) {
+            // Nothing to give back (the gear went back last time). Keep the meter full and offer again.
+            rollOffer(d);
+            plugin.store.save(d);
+            Text.tell(p, "The void has none of your weapons or armour to give back yet, so your meter is still full. Pick again.");
+            openMenu(p);
+            return;
+        }
         d.offer.clear();
         d.meter.spend(s.full);
         long now = System.currentTimeMillis();

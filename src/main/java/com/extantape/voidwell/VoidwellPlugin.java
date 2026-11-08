@@ -79,11 +79,11 @@ public final class VoidwellPlugin extends JavaPlugin implements Listener {
         }, 20L, 20L);
         Bukkit.getScheduler().runTaskTimer(this, bells::tickLabels, 40L, 40L);
 
-        // After every plugin has enabled, say plainly what isn't right yet.
-        Bukkit.getScheduler().runTask(this, () -> {
+        // Once OneBlock has loaded its world (it does so a few seconds after startup), say plainly what isn't right.
+        Bukkit.getScheduler().runTaskLater(this, () -> {
             for (String w : warnings()) getLogger().warning(w);
             for (String p : settings.problems) getLogger().warning("config.yml: " + p);
-        });
+        }, 300L);
         for (Player p : Bukkit.getOnlinePlayers()) onJoin(p);
     }
 
