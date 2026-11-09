@@ -92,6 +92,10 @@ public final class Trips {
                 return;
             }
             p.saveData();
+            // The inventory on disk now includes anything picked up on the island. Save the island too, or a crash
+            // would bring those items back on the ground as well: a duplicate.
+            World ob = plugin.bridge.world();
+            if (plugin.settings.saveWorld && ob != null) ob.save();
             Text.tell(p, "You're at the Waystation. Walk through the OneBlock gate to go back to your way bell, "
                     + "with everything as you left it.");
         });

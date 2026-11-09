@@ -75,7 +75,7 @@ public final class DeathListener implements Listener {
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (p.isOnline()) p.saveData();
             World w = plugin.bridge.world();
-            if (plugin.settings.saveWorldAfterDeath && w != null) w.save();
+            if (plugin.settings.saveWorld && w != null) w.save();
         });
     }
 

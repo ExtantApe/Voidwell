@@ -17,7 +17,7 @@ public final class Settings {
     public final int featherfallMinutes, voidSafeMinutes, bountifulMinutes, travelMinutes;
     public final int givesBackOneIn, consolationPercent;
     public final int inviteSeconds, maxTeam;
-    public final boolean saveWorldAfterDeath;
+    public final boolean saveWorld;
     public final List<String> problems = new ArrayList<>();
 
     public Settings(FileConfiguration c) {
@@ -53,7 +53,7 @@ public final class Settings {
         travelMinutes = clamp(c.getInt("rewards.island-travel.minutes", 5), 1, 60, "rewards.island-travel.minutes");
         inviteSeconds = clamp(c.getInt("social.invite-seconds", 60), 10, 600, "social.invite-seconds");
         maxTeam = clamp(c.getInt("social.max-team-size", 4), 1, 20, "social.max-team-size");
-        saveWorldAfterDeath = c.getBoolean("crash-safety.save-world-after-death", true);
+        saveWorld = c.getBoolean("crash-safety.save-world", true);
     }
 
     private int clamp(int v, int lo, int hi, String key) {

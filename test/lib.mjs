@@ -12,6 +12,11 @@ export const JAVA = process.env.VOIDWELL_TEST_JAVA ?? '/Library/Java/JavaVirtual
 export const ROOT = new URL('../', import.meta.url).pathname
 const CACHE = path.join(ROOT, 'test/work/cache')
 export const sleep = ms => new Promise(r => setTimeout(r, ms))
+// Set VOIDWELL_WAYSTATION_JAR to a real Waystation jar to test against it instead of the stand-in. Bots then walk
+// through the station's real OneBlock gate.
+export const REAL_WAYSTATION = process.env.VOIDWELL_WAYSTATION_JAR ?? null
+/** Every bot made by bot(), by name, so helpers that get only a name can walk it through the gate. */
+export const bots = new Map()
 
 function jar(dir, re) {
   const found = existsSync(dir) ? readdirSync(dir).filter(f => re.test(f)) : []
@@ -40,7 +45,18 @@ export class Server {
     if (existsSync(libs)) execSync(`cp -cR "${libs}/." "${this.dir}/"`)
     for (const p of [...manifest.plugins, ...manifest.via]) copyFileSync(p, this.path('plugins', path.basename(p)))
     copyFileSync(jar(path.join(ROOT, 'build/libs'), /^Voidwell-.*\.jar$/), this.path('plugins/Voidwell.jar'))
-    copyFileSync(jar(path.join(ROOT, 'test/standin/build/libs'), /^WaystationStandin.*\.jar$/), this.path('plugins/WaystationStandin.jar'))
+    if (REAL_WAYSTATION) {
+      copyFileSync(REAL_WAYSTATION, this.path('plugins/Waystation.jar'))
+      // Its own default config, with the OneBlock world handed over and island posts off, as the README says.
+      let ws = execSync(`unzip -p "${REAL_WAYSTATION}" config.yml`, { encoding: 'utf8' })
+      for (const [from, to] of [['worlds: {}', 'worlds:\n  oneblock: {label: "<aqua>OneBlock", hand-over: true}'],
+        ['island-posts:\n  enabled: true', 'island-posts:\n  enabled: false']]) {
+        if (!ws.includes(from)) throw new Error(`Waystation's config.yml has no "${from}"`)
+        ws = ws.replace(from, to)
+      }
+      mkdirSync(this.path('plugins/Waystation'), { recursive: true })
+      writeFileSync(this.path('plugins/Waystation/config.yml'), ws)
+    } else copyFileSync(jar(path.join(ROOT, 'test/standin/build/libs'), /^WaystationStandin.*\.jar$/), this.path('plugins/WaystationStandin.jar'))
     // HouseRules 0.1.1, from its GitHub release (see fetch.mjs).
     copyFileSync(path.join(CACHE, 'HouseRules-0.1.1.jar'), this.path('plugins/HouseRules.jar'))
     for (const p of extraPlugins) copyFileSync(p, this.path('plugins', path.basename(p)))
@@ -134,6 +150,7 @@ export async function bot(name) {
     b.once('error', rej)
   })
   await sleep(1500)
+  bots.set(name, b)
   return b
 }
 

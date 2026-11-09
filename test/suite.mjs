@@ -1,12 +1,16 @@
 // Voidwell acceptance suite. Usage: node suite.mjs <26.2|26.3> [test names...]
 // Runs on a fresh throwaway server on 127.0.0.1:25621, which is deleted afterwards.
 import { writeFileSync, readFileSync, existsSync } from 'node:fs'
-import { Server, bot, heard, count, summary, sleep } from './lib.mjs'
+import { Server, bot, bots, heard, count, summary, sleep, REAL_WAYSTATION } from './lib.mjs'
 
 const version = process.argv[2] ?? '26.2'
 const only = process.argv.slice(3)
 const results = []
 let s
+// Where the Waystation puts players: the stand-in's pad, or two blocks in front of the real station gate (set in setup).
+let LANDING = { dim: 'minecraft:overworld', x: 0.5, z: 3.5 }
+let GATE = null
+const atLanding = w => w.dim === LANDING.dim && Math.abs(w.x - LANDING.x) < 1 && Math.abs(w.z - LANDING.z) < 1
 
 const TEST_CONFIG = {
   '    one-in: 3': '    one-in: 1',
@@ -47,9 +51,38 @@ function meterOf(b) {
   return m ? +m[1] : 0
 }
 
+const FACING = { north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0] }
+
 async function gate(name) {
-  await s.run(`standin gate ${name} oneblock`, /standin gate \S+ handled=(true|false)/)
-  await sleep(2500)
+  if (!REAL_WAYSTATION) {
+    await s.run(`standin gate ${name} oneblock`, /standin gate \S+ handled=(true|false)/)
+    await sleep(2500)
+    return
+  }
+  // The real thing: stand three blocks out from the station's OneBlock gate and walk in. A try that lands in the
+  // gate's cooldown is tried again.
+  const b = bots.get(name)
+  const [dx, dz] = FACING[GATE.facing]
+  for (let i = 0; i < 4; i++) {
+    await s.run(`execute in minecraft:waystation run tp ${name} ${GATE.x + 0.5 + dx * 3} ${GATE.y} ${GATE.z + 0.5 + dz * 3}`, /Teleported/)
+    await sleep(1500)
+    const end = Date.now() + 5000
+    b.setControlState('forward', true)
+    let last = b.entity.position.clone()
+    try {
+      while (Date.now() < end) {
+        const p = b.entity.position
+        // Stop at the gate, or the moment the bot is moved somewhere else (handed over), so it doesn't walk on.
+        if (Math.hypot(p.x - (GATE.x + 0.5), p.z - (GATE.z + 0.5)) < 0.4 || p.distanceTo(last) > 4) break
+        last = p.clone()
+        await b.lookAt(p.offset(GATE.x + 0.5 - p.x, 1.6, GATE.z + 0.5 - p.z), true)
+        await sleep(50)
+      }
+    } finally { b.setControlState('forward', false) }
+    await sleep(2500)
+    if ((await where(name)).dim === 'minecraft:oneblock') return
+    await sleep(3000)
+  }
 }
 
 /** Ring the bell: right-click it as the bot, n times, gap ms apart. */
@@ -69,13 +102,33 @@ async function setup() {
   await s.run('ob set 500 0 100 0 oneblock', /island diameter/)
   await s.run('ob autojoin false', /autojoin is now disabled/)
   await s.run('ob rebirth_on_the_island false', /rebirth_on_the_island is now disabled/)
+  await sleep(3000) // let OneBlock write its config before the stop, or the setting can be lost
   await s.stop()
   // Multiverse-Inventories groups, written while the server is down so it can't save over them.
   writeFileSync(s.path('plugins/Multiverse-Inventories/groups.yml'),
-    'groups:\n  Lobby:\n    worlds:\n    - world\n    shares:\n    - all\n  OneBlock:\n    worlds:\n    - oneblock\n    shares:\n    - all\n')
+    'groups:\n  Lobby:\n    worlds:\n    - world\n' + (REAL_WAYSTATION ? '    - waystation\n' : '') + '    shares:\n    - all\n  OneBlock:\n    worlds:\n    - oneblock\n    shares:\n    - all\n')
   await s.start()
   await s.run('gamerule minecraft:immediate_respawn true', /./)
+  // Superflat lobbies spawn slimes even with monsters off, and a slime killing an idle bot spoils the inventory counts.
+  for (const w of ['overworld', ...(REAL_WAYSTATION ? ['waystation'] : [])]) {
+    await s.run(`execute in minecraft:${w} run gamerule minecraft:spawn_mobs false`, /./)
+    await s.run(`execute in minecraft:${w} run kill @e[type=slime]`, /./)
+  }
   await s.run('execute in minecraft:oneblock run gamerule minecraft:immediate_respawn true', /./)
+  if (REAL_WAYSTATION) {
+    for (const w of ['world', 'waystation', 'oneblock']) await s.run(`lp group default permission set multiverse.access.${w} true`, /Set|already/)
+    // New worlds get their gates within about 30 seconds.
+    for (let i = 0; i < 20 && !GATE; i++) {
+      const m = s.mark(); s.cmd('gate list'); await sleep(1500)
+      const g = s.since(m).match(/station-oneblock: (\S+) (-?\d+) (-?\d+) (-?\d+) (\w+) -> (\S+)/)
+      if (g) GATE = { world: g[1], x: +g[2], y: +g[3], z: +g[4], facing: g[5], dest: g[6] }
+      else await sleep(3000)
+    }
+    if (!GATE) throw new Error('The real Waystation made no station-oneblock gate')
+    const [dx, dz] = FACING[GATE.facing]
+    LANDING = { dim: `minecraft:${GATE.world}`, x: GATE.x + 0.5 + dx * 2, z: GATE.z + 0.5 + dz * 2 }
+    console.log('real Waystation: gate', JSON.stringify(GATE), 'landing', JSON.stringify(LANDING))
+  }
   const status = await s.run('voidwell status', /No problems found|Waystation|OneBlock|Lantern|circles/)
   console.log('status:', s.log.slice(-800).split('\n').filter(l => /Voidwell|- /.test(l)).slice(-5).join(' / '))
 }
@@ -159,8 +212,10 @@ const tests = {
     const out = s.since(m)
     check('server: OneBlock world found and Waystation landing ready', /OneBlock world: oneblock/.test(out) && /Waystation landing: ready/.test(out), out.split('\n').filter(l => / - /.test(l)).join(' / '))
     check('server: no problems reported', /No problems found/.test(out))
-    const r = await s.run('standin gate Nobody oneblock', /no such player|handled=/)
-    check('server: hand-over command path loads', !!r)
+    if (!REAL_WAYSTATION) {
+      const r = await s.run('standin gate Nobody oneblock', /no such player|handled=/)
+      check('server: hand-over command path loads', !!r)
+    } else check('server: the real Waystation made the OneBlock gate', !!GATE, JSON.stringify(GATE))
     const startup = s.log.split('\n').filter(l => /\[Voidwell\]/.test(l) && /WARN/.test(l))
     check('server: no startup warnings once set up', startup.length === 0, startup.join(' / '))
   },
@@ -196,7 +251,7 @@ const tests = {
     await s.run('kill Ash', /Killed/)
     await sleep(4000)
     const w = await where('Ash')
-    check('island death: respawned outside the gate despite the respawn point', w.dim === 'minecraft:overworld' && Math.abs(w.x - 0.5) < 1 && Math.abs(w.z - 3.5) < 1, JSON.stringify(w))
+    check('island death: respawned outside the gate despite the respawn point', atLanding(w), JSON.stringify(w))
     check('island death: lobby inventory, no OneBlock items', summary(a).diamond === 5 && !summary(a).dirt && !summary(a).stone_axe, JSON.stringify(summary(a)))
     const n = await itemsNear(0.5, 101, 0.5, 8)
     const probe = async label => { const m = s.mark(); s.cmd('execute as @e[type=item] run data get entity @s'); await sleep(1500); console.log('   ' + label + ':\n' + s.since(m).split('\n').filter(l => /entity data/.test(l)).map(l => '     ' + (l.match(/Pos: \[[^\]]*\]/)?.[0] ?? '') + ' ' + (l.match(/Age: -?\d+s/)?.[0] ?? '') + ' ' + (l.match(/id: "minecraft:[a-z_]+"/)?.[0] ?? '') + ' ' + (l.match(/voidwell:[a-z-]+": [^,}]+/)?.[0] ?? '')).join('\n')) }
@@ -229,7 +284,7 @@ const tests = {
     check('void death: meter charged by the agreed values (14 + 16 + about 0.2)', gain > 30 && gain < 30.5, gain.toFixed(3))
     await heard(a, /The void took what you carried/, 3000, m).then(() => check('void death: told it counted', true)).catch(e => check('void death: told it counted', false, e.message))
     const w = await where('Ash')
-    check('void death: respawned outside the gate', w.dim === 'minecraft:overworld', JSON.stringify(w))
+    check('void death: respawned outside the gate', atLanding(w), JSON.stringify(w))
     check('void death: nothing reached the lobby inventory', JSON.stringify(summary(a)) === JSON.stringify({ diamond: 5 }), JSON.stringify(summary(a)))
     a.quit(); await sleep(1000)
   },
@@ -476,6 +531,7 @@ const tests = {
     check('travel: home after it ended', Math.hypot(pos.x, pos.z) < 20 && away, JSON.stringify({ pos, wasAway: away }))
     // Teams: Birch invites Dell, a kid who has no island yet, from the bell menu.
     await s.run('give Dell apple 3', /Gave/)
+    console.log('   Dell with the apples:', JSON.stringify(await where('Dell')))
     await sleep(500)
     const im = await sneakRing(b, birchBell)
     await click(b, 14)
@@ -495,9 +551,17 @@ const tests = {
     // Out by the shared bell; the lobby apples are still in the lobby.
     await s.run(`execute in minecraft:oneblock run tp Dell ${birchBell.x + 0.5} ${birchBell.y} ${birchBell.z + 2.5}`, /Teleported/)
     await sleep(1000)
+    console.log('   Dell before the bell:', JSON.stringify(await where('Dell')), JSON.stringify(summary(d)))
     await ring(d, birchBell, 3)
     await sleep(3000)
-    check('teams: a teammate rings the shared bell to leave, and the lobby inventory is intact', count(d, 'apple') === 3, JSON.stringify(summary(d)))
+    const out = await where('Dell')
+    // Read what the server holds, not the bot's view, which can lag behind an inventory swap.
+    let apples = 0
+    for (let i = 0; i < 5 && apples !== 3; i++) {
+      apples = [...(await invData('Dell')).matchAll(/\{[^{}]*"minecraft:apple"[^{}]*\}/g)].reduce((n, m) => n + +(m[0].match(/count: (\d+)/)?.[1] ?? 1), 0)
+      if (apples !== 3) await sleep(1000)
+    }
+    check('teams: a teammate rings the shared bell to leave, and the lobby inventory is intact', atLanding(out) && apples === 3, JSON.stringify({ out, apples, bot: summary(d) }))
     for (const x of [a, b, c, d]) x.quit()
     await sleep(1000)
   },
@@ -521,8 +585,16 @@ const tests = {
     let n = await itemsNear(0.5, 101, 0.5, 8)
     const lobby = summary(a)
     await gate('Ash'); await sleep(1500)
-    check('crash after a death: no duplicate, no loss', n === 1 && count(a, 'gold_ingot') === 0 && lobby.diamond === 5, `items on island: ${n}, OneBlock inventory: ${JSON.stringify(summary(a))}, lobby: ${JSON.stringify(lobby)}`)
-    await s.run('execute in minecraft:oneblock run kill @e[type=item]', /Killed|No entity/)
+    // Back on the island the bot may land on its own drop and pick it up, so count both: nine gold in all, once.
+    const left = await itemsNear(0.5, 101, 0.5, 8)
+    const gold = count(a, 'gold_ingot') + (left ? 9 : 0)
+    check('crash after a death: no duplicate, no loss', n === 1 && gold === 9 && lobby.diamond === 5, `items on island before: ${n}, after: ${left}, OneBlock inventory: ${JSON.stringify(summary(a))}, lobby: ${JSON.stringify(lobby)}`)
+    await sleep(3000)
+    const settled = count(a, 'gold_ingot') + ((await itemsNear(0.5, 101, 0.5, 8)) ? 9 : 0)
+    check('crash after a death: still nine gold a few seconds later', settled === 9, `${settled} gold, inventory ${JSON.stringify(summary(a))}`)
+    // Pick the drop up, as a player would, before leaving by the bell.
+    await s.run('execute in minecraft:oneblock as @e[type=item,x=0,y=101,z=0,distance=..8] run tp @s Ash', /Teleported|No entity/).catch(() => {})
+    await sleep(2000)
     // A crash right after the way bell.
     await s.run('give Ash iron_ingot 4', /Gave/)
     await s.run('execute in minecraft:oneblock run tp Ash 0.5 101 0.5', /Teleported/)
@@ -533,7 +605,11 @@ const tests = {
     a = await bot('Ash'); await sleep(1500)
     const where1 = await where('Ash'), lobby2 = summary(a)
     await gate('Ash'); await sleep(1500)
-    check('crash after the way bell: at the station, nothing duplicated or lost', where1.dim === 'minecraft:overworld' && lobby2.diamond === 5 && !lobby2.iron_ingot && count(a, 'iron_ingot') === 4,
+    // The nine gold picked up after the first crash came out by the bell. It must not also be back on the island.
+    await sleep(2000)
+    const goldAll = count(a, 'gold_ingot') + ((await itemsNear(0.5, 101, 0.5, 8)) ? 9 : 0)
+    check('crash after the way bell: items picked up before leaving aren\'t back on the island', goldAll === settled, `${goldAll} gold now, ${settled} before`)
+    check('crash after the way bell: at the station, nothing duplicated or lost', atLanding(where1) && lobby2.diamond === 5 && !lobby2.iron_ingot && count(a, 'iron_ingot') === 4,
       `${where1.dim}, lobby ${JSON.stringify(lobby2)}, OneBlock ${JSON.stringify(summary(a))}`)
     // A crash in the middle of a payout: "the void gives back" with one-in 1.
     await s.run('clear Ash', /Removed|No items/)
@@ -617,7 +693,7 @@ const tests = {
     await ring(a, bell, 3)
     await sleep(3000)
     const out = await where('Ash')
-    check('way bell: three rings go to the Waystation', out.dim === 'minecraft:overworld' && Math.abs(out.x - 0.5) < 1 && Math.abs(out.z - 3.5) < 1, JSON.stringify(out))
+    check('way bell: three rings go to the Waystation', atLanding(out), JSON.stringify(out))
     check('way bell: lobby inventory there', summary(a).diamond === 5 && !summary(a).dirt, JSON.stringify(summary(a)))
     await gate('Ash')
     await sleep(1500)
@@ -640,6 +716,7 @@ try {
 } finally {
   const errs = s ? s.errors() : []
   console.log('server errors:', errs.length ? '\n' + errs.slice(0, 15).join('\n') : 'none')
+  if (s && process.env.VOIDWELL_TEST_LOG) writeFileSync(process.env.VOIDWELL_TEST_LOG, s.log) // the console, for debugging
   if (s) { await s.stop(); s.remove() }
   const failed = results.filter(r => !r.ok)
   console.log(`\n${version}: ${results.length - failed.length} passed, ${failed.length} failed`)

@@ -68,5 +68,6 @@ social:
 
 # Saves after a death or a bell trip, so a crash can't roll a player back into a duplicate or a loss.
 crash-safety:
-  # Also save the OneBlock world's chunks after a death on an island, so the dropped items are on disk.
-  save-world-after-death: true
+  # Also save the OneBlock world after a death on an island and after a trip out by the bell, so the world on disk
+  # always matches the saved inventories. Without it, a crash could bring back items a player had already picked up.
+  save-world: true

@@ -42,4 +42,5 @@ The owner's decisions for Voidwell, with dates. Later work follows these without
 - Items that can never be picked up (for example the copy `/give` shows and removes at once) are left to despawn normally. Keeping them made duplicates.
 - Visitors can look but not touch on an island that isn't theirs. This holds whether they came by island travel or walked or bridged there, because OneBlock's `protection: false` lets players reach other islands.
 - Powers run in real time, so logging out or a restart neither stops nor stretches them.
+- After a trip out by the bell, Voidwell saves the OneBlock world as well as the player, as it does after a death (`crash-safety.save-world`). Otherwise a crash could bring back, on the ground, items the player had already picked up and carried out: found with the real Waystation 0.4.0, 2026-11-09.
 - "The void gives back" with no gear in the pool keeps the meter full and offers again, rather than spending it on nothing.
