@@ -2,7 +2,7 @@
 
 A OneBlock add-on for Paper. Players walk into OneBlock through the Waystation, ring their island's bell to leave, and get something back for whatever they lose to the void.
 
-**Status:** pre-release. It passes all 82 of its bot checks on a throwaway Paper 26.2 server, with Waystation 0.4.0, OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and HouseRules 0.1.1. The bots walk through Waystation's real OneBlock gate. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
+**Status:** 0.1.0, the first release. It passes all 82 of its bot checks on a throwaway Paper 26.2 server, with Waystation 0.4.0, OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and HouseRules 0.1.1. The bots walk through Waystation's real OneBlock gate. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
 
 ## What it does
 
