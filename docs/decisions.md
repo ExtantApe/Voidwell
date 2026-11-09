@@ -4,7 +4,7 @@ The owner's decisions for Voidwell, with dates. Later work follows these without
 
 ## 2026-11-08: from the brief
 
-- Voidwell is a working title. If it's renamed, the repo, folder, plugin name, `rootProject.name`, jar and package all change together.
+- Name: Voidwell, kept by the owner on 2026-11-08 (relayed by Helm), one word everywhere.
 - Players enter OneBlock through the Waystation's OneBlock gate. On the first trip they get an island. After that they arrive where they last left, at their way bell.
 - Players leave by the island's way bell. Leaving saves their state in the OneBlock world and puts them at the Waystation, outside the OneBlock gate.
 - Every OneBlock death respawns the player outside the OneBlock gate, even with a bed set. Items drop normally where the player died.
