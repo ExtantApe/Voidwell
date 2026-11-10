@@ -54,9 +54,18 @@ public final class Social {
 
     /** True only if both are online and share at least one circle. */
     public boolean shareCircle(Player a, Player b) {
-        if (a == null || b == null || !a.isOnline() || !b.isOnline()) return false;
-        for (String node : circleNodes())
-            if (a.hasPermission(node) && b.hasPermission(node)) return true;
+        if (a == null || b == null) return false;
+        return shareCircle(circleNodes(), a.isOnline(), a::hasPermission, b.isOnline(), b::hasPermission);
+    }
+
+    /**
+     * The kids rule on its own, so it can be tested without a server: both online, and at least one circle node held by
+     * both. No circles at all means no.
+     */
+    static boolean shareCircle(List<String> circles, boolean aOnline, java.util.function.Predicate<String> aHas,
+                               boolean bOnline, java.util.function.Predicate<String> bHas) {
+        if (!aOnline || !bOnline) return false;
+        for (String node : circles) if (aHas.test(node) && bHas.test(node)) return true;
         return false;
     }
 
