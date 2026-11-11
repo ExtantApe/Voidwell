@@ -495,6 +495,40 @@ const tests = {
     let pos = await where('Ash')
     check('travel: visiting Birch\'s island', Math.hypot(pos.x - bPos.x, pos.z - bPos.z) < 20, JSON.stringify(pos))
     await heard(b, /Ash.*is visiting your island/, 4000).then(() => check('travel: the owner is told', true)).catch(e => check('travel: the owner is told', false, e.message))
+    // Look, don't take. The owner drops an apple at the visitor's feet and steps away: the visitor mustn't pick it up.
+    // Control: an apple the visitor drops themselves comes back to them.
+    const goldApples = () => count(a, 'golden_apple')
+    const before0 = goldApples()
+    // A OneBlock island is one block wide, so a drop would fall into the void: a barrier floor for this check only.
+    const fp = await where('Ash'), fx = Math.floor(fp.x), fz = Math.floor(fp.z), fy = Math.floor(fp.y) - 1
+    await s.run(`execute in minecraft:oneblock run fill ${fx - 3} ${fy} ${fz - 3} ${fx + 3} ${fy} ${fz + 3} barrier keep`, /filled|No blocks/i)
+    await s.run('give Birch golden_apple 1', /Gave/)
+    await s.run('execute in minecraft:oneblock run tp Birch Ash', /Teleported/)
+    await sleep(800)
+    await b.look(0, -Math.PI / 2, true)
+    await b.toss(b.registry.itemsByName.golden_apple.id, null, 1)
+    // The bell is close by: as a spectator the owner can't take their own apple back while the visitor stands on it.
+    await s.run('gamemode spectator Birch', /Set|game mode/i)
+    await s.run(`execute in minecraft:oneblock run tp Birch ${birchBell.x + 0.5} ${birchBell.y} ${birchBell.z + 2.5}`, /Teleported/)
+    await sleep(1500)
+    // A throw lands a block or two away; put the apple right at the visitor's feet, within pickup reach.
+    await s.run(`execute in minecraft:oneblock as @e[type=item,x=${fx},y=${fy},z=${fz},distance=..6] run tp @s Ash`, /Teleported/)
+    await sleep(4000)
+    const ap = await where('Ash')
+    const lying = await s.run(`execute in minecraft:oneblock positioned ${ap.x} ${ap.y} ${ap.z} if entity @e[type=item,distance=..3]`, /Test (passed|failed)/)
+    check('travel: a visitor can\'t pick up what the owner dropped', goldApples() === before0 && /passed/.test(lying), `Ash apples ${before0} -> ${goldApples()}, item still there: ${/passed/.test(lying)}`)
+    await s.run('gamemode survival Birch', /Set|game mode/i)
+    await s.run('give Ash golden_apple 1', /Gave/)
+    await sleep(800)
+    const mine = goldApples()
+    await a.look(0, -Math.PI / 2, true)
+    await a.toss(a.registry.itemsByName.golden_apple.id, null, 1)
+    await sleep(1500)
+    await s.run(`execute in minecraft:oneblock as @e[type=item,x=${fx},y=${fy},z=${fz},distance=..6] run tp @s Ash`, /Teleported/)
+    await sleep(4000)
+    check('travel: control: a visitor picks their own drop back up', goldApples() === mine, `Ash apples ${mine} -> after toss and wait ${goldApples()}`)
+    await s.run(`execute in minecraft:oneblock run kill @e[type=item,x=${fx},y=${fy},z=${fz},distance=..6]`, /Killed|No entity/i)
+    await s.run(`execute in minecraft:oneblock run fill ${fx - 3} ${fy} ${fz - 3} ${fx + 3} ${fy} ${fz + 3} air replace barrier`, /filled|No blocks/i)
     // Look, don't touch.
     const target = a.blockAt(new (await import('vec3')).Vec3(Math.floor(bPos.x), 100, Math.floor(bPos.z)))
     const kind = target?.name
