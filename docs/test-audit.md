@@ -54,7 +54,10 @@ After the refactor, the bot suite's 82 checks all passed on Paper 26.2 (2026-11-
 
 ### Gaps
 
-- **A visitor picking up an item that isn't theirs.** Pickup has its own rules (your own throws and death drops are allowed), so the break check doesn't cover it. A bot check was tried on 2026-11-10: items summoned at a visitor's feet on another island never appeared, and the suite keeps only the last server's console, so the cause wasn't found. Not covered yet. Next try: the island owner's bot drops an item next to the visitor, with a control for the visitor's own throw. Later finding (2026-11-10): nothing in Voidwell removes an item entity except the void, so the emerald most likely fell off the island's edge; it isn't data loss.
+- **A visitor picking up an item that isn't theirs:** covered on 2026-11-11 by `travelAndTeams` on 26.2 (19/19).
+  - The owner drops a golden apple, which is moved to the visiting kid's feet on a temporary barrier floor. It stays there, and the visitor doesn't get it.
+  - Control: the visitor's own drop, moved the same way, comes back to them.
+  - What made the earlier tries look wrong: the island is one block wide, so drops fell into the void, and the owner standing at the bell picked their own apple back up. The owner is a spectator during this check, so they can't pick anything up.
 
 - **Anything with a player on Paper 26.3.** ViaVersion clients are disconnected there when they move. Checked again on 2026-11-10: the newest ViaVersion and ViaBackwards builds on Modrinth are the ones already in use, and the bot library has no native 26.3 support. Server-only checks run there. This waits for a newer bot client or a real one (T21).
 - **A real client:** how the bell, meter and labels look and feel (T21).
