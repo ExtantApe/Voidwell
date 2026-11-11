@@ -719,7 +719,20 @@ const tests = {
     await sleep(3000)
     const moved = await where('Ash')
     check('way bell: if another plugin moves them back after the respawn, Voidwell still puts them at the gate', atLanding(moved), JSON.stringify(moved))
-    check('way bell: and the console says what happened', /Something moved Ash back into OneBlock after their respawn/.test(s.since(mark)))
+    check('way bell: and the console says what happened', /Something moved Ash away from the Waystation's OneBlock gate after their respawn/.test(s.since(mark)))
+    // What Multiverse-Inventories did on the real server's copy: right after the respawn, it put the player back on their
+    // last spot in the station, the step into the OneBlock gate. Voidwell puts them back at the landing, and Waystation
+    // (0.7.0) won't fire a gate for someone a teleport put next to it until they've stepped clear.
+    if (REAL_WAYSTATION && GATE) {
+      const mark2 = s.mark()
+      await s.run('execute in minecraft:oneblock run tp Ash 0.5 -75 0.5', /Teleported/)
+      await new Promise(res => { a.once('spawn', res); setTimeout(res, 8000) })
+      s.cmd(`execute in minecraft:${GATE.world} run tp Ash ${GATE.x + 0.5} ${GATE.y} ${GATE.z + 0.5}`)
+      await sleep(4000)
+      const after = await where('Ash')
+      check('way bell: put on the step into the gate after the respawn, they end at the landing, not on the island', atLanding(after), JSON.stringify(after))
+      check('way bell: and the gate did not take them', !/minecraft:oneblock/.test(after.dim) && !s.since(mark2).includes('handed to Voidwell'), JSON.stringify(after))
+    }
     a.quit(); await sleep(1000)
   },
 }
