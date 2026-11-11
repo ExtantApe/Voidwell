@@ -2,7 +2,7 @@
 
 A OneBlock add-on for Paper. Players walk into OneBlock through the Waystation, ring their island's bell to leave, and get something back for whatever they lose to the void.
 
-**Status:** 0.1.1. It passes all 86 of its bot checks on a throwaway Paper 26.2 server, with Waystation 0.6.0, OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and HouseRules 0.1.1. The bots walk through Waystation's real OneBlock gate. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
+**Status:** 0.1.2. Its full bot suite passed 86/86 for 0.1.1 on a throwaway Paper 26.2 server, and 0.1.2's respawn, void-death and way-bell sections pass with Waystation 0.7.0; tested with OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and HouseRules 0.1.1. The bots walk through Waystation's real OneBlock gate. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
 
 ## What it does
 
@@ -36,7 +36,7 @@ Paper 26.1 or later, Java 25. Waystation 0.4.0 or later and OneBlock 1.6.4 (plug
 
 With the server stopped:
 
-1. Copy `Voidwell-0.1.1.jar` to `plugins/`.
+1. Copy `Voidwell-0.1.2.jar` to `plugins/`.
 2. In OneBlock, turn off two settings that fight Voidwell: `/ob autojoin false` and `/ob rebirth_on_the_island false`. With autojoin on, OneBlock cancels the trip back to a player's bell.
 3. In Waystation, set the OneBlock world's gate to `hand-over: true` and turn island posts off (`island-posts.enabled: false`). The bell replaces them.
 4. Put the OneBlock world in its own Multiverse-Inventories group, and the Waystation's world in a group with the lobby, so a death in OneBlock is a plain OneBlock-to-lobby swap.
@@ -88,7 +88,7 @@ Not tested yet:
 
 ## Troubleshooting
 
-- **A player respawns on their island after a OneBlock death.** Voidwell sets the respawn at the Waystation's OneBlock gate, and since 0.1.1 it checks half a second later. If another plugin has moved the player back into OneBlock, Voidwell puts them at the gate and writes a console warning naming where they were moved. To find which plugin did it, start the server with `-Dvoidwell.trace=true`: every teleport and respawn is then logged with the code that caused it. Leave it off otherwise.
+- **A player respawns on their island after a OneBlock death.** Voidwell sets the respawn at the Waystation's OneBlock gate and checks half a second later that they're within a block of it. If another plugin has moved them, Voidwell puts them back and writes a console warning saying where they'd been moved. Multiverse-Inventories' `apply-last-location-for-all-teleports` is the known cause: it can restore the step into the gate. Use Waystation 0.7.0 or later too. To find any other cause, start the server with `-Dvoidwell.trace=true`: every teleport and respawn is then logged with the code that caused it. Leave it off otherwise.
 
 ## Build
 
@@ -96,7 +96,7 @@ Not tested yet:
 ./gradlew build
 ```
 
-The jar is `build/libs/Voidwell-0.1.1.jar`. To run the bot tests: `cd test && npm install && node fetch.mjs && VOIDWELL_WAYSTATION_JAR=<path to Waystation-0.4.0.jar> node suite.mjs 26.2`. Without `VOIDWELL_WAYSTATION_JAR` they use a small stand-in for Waystation (`test/standin`) instead.
+The jar is `build/libs/Voidwell-0.1.2.jar`. To run the bot tests: `cd test && npm install && node fetch.mjs && VOIDWELL_WAYSTATION_JAR=<path to Waystation-0.4.0.jar> node suite.mjs 26.2`. Without `VOIDWELL_WAYSTATION_JAR` they use a small stand-in for Waystation (`test/standin`) instead.
 
 ## License
 

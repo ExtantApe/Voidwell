@@ -2,6 +2,18 @@
 
 Kept by this repo's owning lead (Minecraft: Plugins Lead), per `~/Code/CLAUDE.md`, "Test self-audits". Newest first.
 
+## 2026-11-10: the respawn, for real (0.1.2)
+
+0.1.1's trace on the Server lead's copy found the cause: Multiverse-Inventories' `apply-last-location-for-all-teleports` restored a respawned player's last spot in the station, the step into the OneBlock gate, and the gate fired.
+
+| Promise | Covered by |
+| --- | --- |
+| A respawned player put on the step into the gate ends at the landing, not on the island | bots "put on the step into the gate after the respawn, they end at the landing…", "and the gate did not take them" (the console plays Multiverse-Inventories) |
+| Voidwell's check needs them within a block of the landing, not merely out of OneBlock | the same check: 0.1.1's rule let the gate step pass, because it's two blocks away |
+
+The bot tests found one more thing: right after a teleport, a bot's position can bounce back to where it was once, which is why the check runs at half a second, before any step, and why Waystation 0.7.0's step-clear rule is the second line, not the only one.
+
+
 ## 2026-11-10: the respawn after a bell trip (0.1.1)
 
 The server session's rehearsal on a copy of the real server (Paper 26.2, Waystation 0.6.0, OneBlock 1.6.4) found a void death after a bell trip and a return putting the player on their island while Voidwell said "You're back at the Waystation", in 3 of 3 runs. In this repo's suite the same steps respawn at the gate; a teleport trace showed only Voidwell's respawn there. So something on the real server moves the player afterwards.

@@ -87,6 +87,14 @@ public final class DeathListener implements Listener {
         item.getPersistentDataContainer().set(dropOwner, PersistentDataType.STRING, dying.toString());
     }
 
+    /**
+     * Within a block of the landing, in its world: where a respawn should leave them. Not more: the step into the
+     * OneBlock gate is only about two blocks from the landing.
+     */
+    static boolean atLanding(Location at, Location landing) {
+        return at.getWorld() != null && at.getWorld().equals(landing.getWorld()) && at.distanceSquared(landing) <= 1.0;
+    }
+
     /** Respawn outside the OneBlock gate, even with a bed or anchor set. Runs after OneBlock's own handler. */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRespawn(PlayerRespawnEvent e) {
@@ -105,11 +113,13 @@ public final class DeathListener implements Listener {
             // admin can find which plugin did it (start Java with -Dvoidwell.trace=true to log every teleport).
             Location promised = gate.get().clone();
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                if (!p.isOnline() || !plugin.bridge.inWorld(p.getLocation())) return;
+                if (!p.isOnline() || atLanding(p.getLocation(), promised)) return;
                 Location at = p.getLocation();
-                plugin.getLogger().warning("Something moved " + p.getName() + " back into OneBlock after their respawn (to "
-                        + at.getBlockX() + ", " + at.getBlockY() + ", " + at.getBlockZ() + "). Sending them to the Waystation's OneBlock gate, as Voidwell promised."
-                        + " To find what moved them, start the server with -Dvoidwell.trace=true.");
+                // Seen on a real server (2026-11-10): Multiverse-Inventories with apply-last-location-for-all-teleports
+                // put respawned players back on their last spot in the station, the step into the OneBlock gate.
+                plugin.getLogger().warning("Something moved " + p.getName() + " away from the Waystation's OneBlock gate after their respawn (to "
+                        + at.getWorld().getName() + " " + at.getBlockX() + ", " + at.getBlockY() + ", " + at.getBlockZ() + "). Putting them back, as Voidwell promised."
+                        + " Multiverse-Inventories' apply-last-location-for-all-teleports does this; -Dvoidwell.trace=true shows any other cause.");
                 p.teleportAsync(promised, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.PLUGIN);
             }, 10L);
         } else {
