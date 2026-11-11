@@ -160,6 +160,19 @@ public final class VoidwellPlugin extends JavaPlugin implements Listener {
             Bukkit.getScheduler().runTaskLater(this, () -> rewards.deliver(e.getPlayer()), 20L);
     }
 
+    // Troubleshooting: with -Dvoidwell.trace=true, log every teleport and respawn with the plugin code that caused it.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void traceTp(org.bukkit.event.player.PlayerTeleportEvent e) {
+        if (!Boolean.getBoolean("voidwell.trace")) return;
+        StringBuilder sb = new StringBuilder();
+        for (StackTraceElement el : new Throwable().getStackTrace()) { String c = el.getClassName(); if (!c.startsWith("java.") && !c.startsWith("jdk.")) sb.append(" <").append(c.replaceAll("^.*\\.", "")).append('.').append(el.getMethodName()); if (sb.length() > 900) break; }
+        getLogger().info("TRACE tp " + e.getPlayer().getName() + " " + e.getCause() + " -> " + e.getTo().getWorld().getName() + " " + e.getTo().getBlockX() + "," + e.getTo().getBlockY() + "," + e.getTo().getBlockZ() + " cancelled=" + e.isCancelled() + sb);
+    }
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void traceRespawn(org.bukkit.event.player.PlayerRespawnEvent e) {
+        if (Boolean.getBoolean("voidwell.trace")) getLogger().info("TRACE respawn " + e.getPlayer().getName() + " -> " + e.getRespawnLocation().getWorld().getName() + " " + e.getRespawnLocation().getBlockX() + "," + e.getRespawnLocation().getBlockY() + "," + e.getRespawnLocation().getBlockZ());
+    }
+
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         var id = e.getPlayer().getUniqueId();

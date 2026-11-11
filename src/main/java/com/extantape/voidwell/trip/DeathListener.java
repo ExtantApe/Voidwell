@@ -100,6 +100,18 @@ public final class DeathListener implements Listener {
                 p.saveData();
                 Text.tell(p, "You're back at the Waystation. Walk through the OneBlock gate to return to your island.");
             });
+            // Another plugin can still move a player after the respawn (seen once on a real server's rehearsal, not
+            // in this repo's tests). The promise is the gate, so put them there, and say so in the console, so an
+            // admin can find which plugin did it (start Java with -Dvoidwell.trace=true to log every teleport).
+            Location promised = gate.get().clone();
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (!p.isOnline() || !plugin.bridge.inWorld(p.getLocation())) return;
+                Location at = p.getLocation();
+                plugin.getLogger().warning("Something moved " + p.getName() + " back into OneBlock after their respawn (to "
+                        + at.getBlockX() + ", " + at.getBlockY() + ", " + at.getBlockZ() + "). Sending them to the Waystation's OneBlock gate, as Voidwell promised."
+                        + " To find what moved them, start the server with -Dvoidwell.trace=true.");
+                p.teleportAsync(promised, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.PLUGIN);
+            }, 10L);
         } else {
             // Waystation can't say where its gate is. Respawning on the island at least keeps OneBlock's inventory
             // in the OneBlock world. The player is told, rather than left wondering.

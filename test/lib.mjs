@@ -80,7 +80,7 @@ export class Server {
 
   async start(timeout = 240000) {
     this.log = ''
-    this.proc = spawn(JAVA, ['-Xms1G', '-Xmx2G', '-Dpaper.disableChannelLimit=true', '-jar', 'paper.jar', '--nogui'], { cwd: this.dir })
+    this.proc = spawn(JAVA, ['-Xms1G', '-Xmx2G', '-Dpaper.disableChannelLimit=true', ...(process.env.VOIDWELL_TRACE ? ['-Dvoidwell.trace=true'] : []), '-jar', 'paper.jar', '--nogui'], { cwd: this.dir })
     this.proc.stdout.on('data', d => { this.log += d.toString().replace(/\x1b\[[0-9;]*m/g, '') })
     this.proc.stderr.on('data', d => { this.log += d.toString() })
     this.exited = new Promise(r => this.proc.on('exit', r))
