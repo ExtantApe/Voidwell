@@ -701,6 +701,25 @@ const tests = {
     check('way bell: back where the bell was rung', back.dim === 'minecraft:oneblock' && Math.hypot(back.x - spot.x, back.z - spot.z) < 0.6 && Math.abs(back.y - spot.y) < 0.6, JSON.stringify({ back, spot }))
     const after = { inv: summary(a), xp: a.experience.level, hp: Math.round(a.health), food: a.food }
     check('way bell: same inventory, XP, health and hunger', JSON.stringify(after) === JSON.stringify(mid), JSON.stringify({ mid, after }))
+    // The server session's repro (2026-11-10): after a bell trip and back, a void death must still respawn outside
+    // the OneBlock gate, not on the island.
+    const m = a.chatLog.length
+    await s.run('execute in minecraft:oneblock run tp Ash 0.5 -75 0.5', /Teleported/)
+    await sleep(6000)
+    const died = await where('Ash')
+    check('way bell: after a bell trip and back, a void death still respawns outside the gate', atLanding(died), JSON.stringify(died))
+    await heard(a, /back at the Waystation/, 3000, m).then(() => check('way bell: and says so', true)).catch(e => check('way bell: and says so', false, e.message))
+    // What the real server's rehearsal saw: something moves the player back onto the island right after the respawn.
+    // Played here by the console, within the first tick or two. Voidwell must still end with them at the gate.
+    await s.run('execute in minecraft:oneblock run tp Ash 2.5 101 0.5', /Teleported/)
+    const mark = s.mark()
+    await s.run('execute in minecraft:oneblock run tp Ash 0.5 -75 0.5', /Teleported/)
+    await new Promise(res => { a.once('spawn', res); setTimeout(res, 8000) })
+    s.cmd('execute in minecraft:oneblock run tp Ash 2.5 101 0.5')
+    await sleep(3000)
+    const moved = await where('Ash')
+    check('way bell: if another plugin moves them back after the respawn, Voidwell still puts them at the gate', atLanding(moved), JSON.stringify(moved))
+    check('way bell: and the console says what happened', /Something moved Ash back into OneBlock after their respawn/.test(s.since(mark)))
     a.quit(); await sleep(1000)
   },
 }
@@ -713,6 +732,9 @@ try {
     console.log(`--- ${name}`)
     try { await fn() } catch (e) { check(name + ' (ran to the end)', false, e.message.slice(0, 600)) }
   }
+} catch (e) {
+  // A set-up that fails must count as a failure, not as "0 passed, 0 failed".
+  check('set-up finished', false, e.message.slice(0, 600))
 } finally {
   const errs = s ? s.errors() : []
   console.log('server errors:', errs.length ? '\n' + errs.slice(0, 15).join('\n') : 'none')
