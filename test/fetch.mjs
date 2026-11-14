@@ -7,7 +7,7 @@ import path from 'node:path'
 
 const CACHE = new URL('./work/cache/', import.meta.url).pathname
 mkdirSync(CACHE, { recursive: true })
-const UA = { 'User-Agent': 'voidwell-live-tests (ExtantApe/Voidwell)' }
+const UA = { 'User-Agent': 'onevoid-live-tests (ExtantApe/OneVoid)' }
 
 async function json(url) {
   const r = await fetch(url, { headers: UA })
@@ -58,5 +58,5 @@ const out = {
 }
 writeFileSync(path.join(CACHE, 'manifest.json'), JSON.stringify(out, null, 2))
 console.log('all jars checked')
-// HouseRules isn't on Modrinth yet. Fetch its release jar with: gh release download v0.1.1 -R ExtantApe/HouseRules -p '*.jar' -D test/work/cache
-if (!existsSync(path.join(CACHE, 'HouseRules-0.1.1.jar'))) console.log('Missing HouseRules-0.1.1.jar: see the note at the end of fetch.mjs')
+// Mayor isn't on Modrinth yet. Fetch its release jar with: gh release download v0.1.1 -R ExtantApe/Mayor -p '*.jar' -D test/work/cache
+if (!existsSync(path.join(CACHE, 'Mayor-0.1.1.jar'))) console.log('Missing Mayor-0.1.1.jar: see the note at the end of fetch.mjs')

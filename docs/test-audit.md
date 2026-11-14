@@ -9,26 +9,26 @@ Kept by this repo's owning lead (Minecraft: Plugins Lead), per `~/Code/CLAUDE.md
 | Promise | Covered by |
 | --- | --- |
 | A respawned player put on the step into the gate ends at the landing, not on the island | bots "put on the step into the gate after the respawn, they end at the landing…", "and the gate did not take them" (the console plays Multiverse-Inventories) |
-| Voidwell's check needs them within a block of the landing, not merely out of OneBlock | the same check: 0.1.1's rule let the gate step pass, because it's two blocks away |
+| OneVoid's check needs them within a block of the landing, not merely out of OneBlock | the same check: 0.1.1's rule let the gate step pass, because it's two blocks away |
 
 The bot tests found one more thing: right after a teleport, a bot's position can bounce back to where it was once, which is why the check runs at half a second, before any step, and why Waystation 0.7.0's step-clear rule is the second line, not the only one.
 
 
 ## 2026-11-10: the respawn after a bell trip (0.1.1)
 
-The server session's rehearsal on a copy of the real server (Paper 26.2, Waystation 0.6.0, OneBlock 1.6.4) found a void death after a bell trip and a return putting the player on their island while Voidwell said "You're back at the Waystation", in 3 of 3 runs. In this repo's suite the same steps respawn at the gate; a teleport trace showed only Voidwell's respawn there. So something on the real server moves the player afterwards.
+The server session's rehearsal on a copy of the real server (Paper 26.2, Waystation 0.6.0, OneBlock 1.6.4) found a void death after a bell trip and a return putting the player on their island while OneVoid said "You're back at the Waystation", in 3 of 3 runs. In this repo's suite the same steps respawn at the gate; a teleport trace showed only OneVoid's respawn there. So something on the real server moves the player afterwards.
 
 | Promise | Covered by |
 | --- | --- |
 | After a bell trip and back, a void death still respawns outside the gate, and says so | bots "way bell: after a bell trip and back, a void death still respawns outside the gate", "and says so" (the rehearsal's repro) |
-| If another plugin moves the player back into OneBlock after the respawn, Voidwell still ends with them at the gate and the console says so | bots "if another plugin moves them back after the respawn…", "and the console says what happened" (the console plays the other plugin) |
+| If another plugin moves the player back into OneBlock after the respawn, OneVoid still ends with them at the gate and the console says so | bots "if another plugin moves them back after the respawn…", "and the console says what happened" (the console plays the other plugin) |
 
-Gap: which plugin on the real server does it isn't known yet. `-Dvoidwell.trace=true` logs every teleport with its cause, for the server session's next rehearsal.
+Gap: which plugin on the real server does it isn't known yet. `-Donevoid.trace=true` logs every teleport with its cause, for the server session's next rehearsal.
  Taken over from code-44 with its agreement on 2026-11-10.
 
 ## 2026-11-10: first full audit (at 0.1.0)
 
-What Voidwell promises (README "What it does" and "Tested", `docs/decisions.md`), and what proves it. "Bots" is `test/suite.mjs` on a throwaway Paper 26.2 server with the real Waystation, OneBlock, Multiverse, LuckPerms and HouseRules; "unit" is `src/test`.
+What OneVoid promises (README "What it does" and "Tested", `docs/decisions.md`), and what proves it. "Bots" is `test/suite.mjs` on a throwaway Paper 26.2 server with the real Waystation, OneBlock, Multiverse, LuckPerms and Mayor; "unit" is `src/test`.
 
 ### Covered
 
@@ -65,4 +65,4 @@ After the refactor, the bot suite's 82 checks all passed on Paper 26.2 (2026-11-
 ### Skipped, with reasons
 
 - **Each visitor action separately (place, open, hurt, buckets, hanging items).** They share `guarded()` with breaking, which is tested. A bot can't reliably right-click blocks through ViaBackwards.
-- **Admins with `voidwell.admin` not being held back on islands.** It's convenience for support, and protects nothing.
+- **Admins with `onevoid.admin` not being held back on islands.** It's convenience for support, and protects nothing.

@@ -1,4 +1,4 @@
-// Voidwell acceptance suite. Usage: node suite.mjs <26.2|26.3> [test names...]
+// OneVoid acceptance suite. Usage: node suite.mjs <26.2|26.3> [test names...]
 // Runs on a fresh throwaway server on 127.0.0.1:25621, which is deleted afterwards.
 import { writeFileSync, readFileSync, existsSync } from 'node:fs'
 import { Server, bot, bots, heard, count, summary, sleep, REAL_WAYSTATION } from './lib.mjs'
@@ -35,7 +35,7 @@ async function where(name) {
 }
 
 async function bellOf(name) {
-  const m = await s.run(`voidwell bell ${name}`, /way bell is at (-?\d+) (-?\d+) (-?\d+)|has no island/)
+  const m = await s.run(`onevoid bell ${name}`, /way bell is at (-?\d+) (-?\d+) (-?\d+)|has no island/)
   return m[1] === undefined ? null : { x: +m[1], y: +m[2], z: +m[3] }
 }
 
@@ -45,7 +45,7 @@ async function isBlock(x, y, z, block, world = 'oneblock') {
 }
 
 function meterOf(b) {
-  const f = s.path(`plugins/Voidwell/players/${b.player.uuid}.yml`)
+  const f = s.path(`plugins/OneVoid/players/${b.player.uuid}.yml`)
   if (!existsSync(f)) return 0
   const m = readFileSync(f, 'utf8').match(/points: ([\d.]+)/)
   return m ? +m[1] : 0
@@ -129,8 +129,8 @@ async function setup() {
     LANDING = { dim: `minecraft:${GATE.world}`, x: GATE.x + 0.5 + dx * 2, z: GATE.z + 0.5 + dz * 2 }
     console.log('real Waystation: gate', JSON.stringify(GATE), 'landing', JSON.stringify(LANDING))
   }
-  const status = await s.run('voidwell status', /No problems found|Waystation|OneBlock|Lantern|circles/)
-  console.log('status:', s.log.slice(-800).split('\n').filter(l => /Voidwell|- /.test(l)).slice(-5).join(' / '))
+  const status = await s.run('onevoid status', /No problems found|Waystation|OneBlock|Lantern|circles/)
+  console.log('status:', s.log.slice(-800).split('\n').filter(l => /OneVoid|- /.test(l)).slice(-5).join(' / '))
 }
 
 function uuidInts(u) {
@@ -182,9 +182,9 @@ async function sneakRing(b, bell) {
 }
 
 async function takeReward(b, id) {
-  await s.run(`voidwell offer ${b.username} ${id}`, /offered/)
+  await s.run(`onevoid offer ${b.username} ${id}`, /offered/)
   const w = window(b)
-  b.chat('/voidwell reward')
+  b.chat('/onevoid reward')
   await w
   await click(b, 11)
   const again = window(b).catch(() => null)
@@ -206,9 +206,9 @@ async function invData(name) {
 const tests = {
   /** Server-only checks, for versions bots can't stay connected to (26.3 through ViaVersion). */
   async serverOnly() {
-    check('server: Voidwell enabled', /Enabling Voidwell v/.test(s.log) && !/Error occurred while enabling Voidwell/.test(s.log))
+    check('server: OneVoid enabled', /Enabling OneVoid v/.test(s.log) && !/Error occurred while enabling OneVoid/.test(s.log))
     await sleep(12000) // OneBlock loads its world a few seconds after startup
-    const m = s.mark(); s.cmd('voidwell status'); await sleep(2000)
+    const m = s.mark(); s.cmd('onevoid status'); await sleep(2000)
     const out = s.since(m)
     check('server: OneBlock world found and Waystation landing ready', /OneBlock world: oneblock/.test(out) && /Waystation landing: ready/.test(out), out.split('\n').filter(l => / - /.test(l)).join(' / '))
     check('server: no problems reported', /No problems found/.test(out))
@@ -216,7 +216,7 @@ const tests = {
       const r = await s.run('standin gate Nobody oneblock', /no such player|handled=/)
       check('server: hand-over command path loads', !!r)
     } else check('server: the real Waystation made the OneBlock gate', !!GATE, JSON.stringify(GATE))
-    const startup = s.log.split('\n').filter(l => /\[Voidwell\]/.test(l) && /WARN/.test(l))
+    const startup = s.log.split('\n').filter(l => /\[OneVoid\]/.test(l) && /WARN/.test(l))
     check('server: no startup warnings once set up', startup.length === 0, startup.join(' / '))
   },
 
@@ -254,7 +254,7 @@ const tests = {
     check('island death: respawned outside the gate despite the respawn point', atLanding(w), JSON.stringify(w))
     check('island death: lobby inventory, no OneBlock items', summary(a).diamond === 5 && !summary(a).dirt && !summary(a).stone_axe, JSON.stringify(summary(a)))
     const n = await itemsNear(0.5, 101, 0.5, 8)
-    const probe = async label => { const m = s.mark(); s.cmd('execute as @e[type=item] run data get entity @s'); await sleep(1500); console.log('   ' + label + ':\n' + s.since(m).split('\n').filter(l => /entity data/.test(l)).map(l => '     ' + (l.match(/Pos: \[[^\]]*\]/)?.[0] ?? '') + ' ' + (l.match(/Age: -?\d+s/)?.[0] ?? '') + ' ' + (l.match(/id: "minecraft:[a-z_]+"/)?.[0] ?? '') + ' ' + (l.match(/voidwell:[a-z-]+": [^,}]+/)?.[0] ?? '')).join('\n')) }
+    const probe = async label => { const m = s.mark(); s.cmd('execute as @e[type=item] run data get entity @s'); await sleep(1500); console.log('   ' + label + ':\n' + s.since(m).split('\n').filter(l => /entity data/.test(l)).map(l => '     ' + (l.match(/Pos: \[[^\]]*\]/)?.[0] ?? '') + ' ' + (l.match(/Age: -?\d+s/)?.[0] ?? '') + ' ' + (l.match(/id: "minecraft:[a-z_]+"/)?.[0] ?? '') + ' ' + (l.match(/onevoid:[a-z-]+": [^,}]+/)?.[0] ?? '')).join('\n')) }
     if (process.env.PROBE) await probe('after death')
     check('island death: both items dropped on the island, and no extra copies', n === 2, `${n} item entities`)
     const m = s.mark(); s.cmd('tick sprint 30000'); await s.waitFor(/Sprint completed/, 600000, m)
@@ -366,13 +366,13 @@ const tests = {
     check('commands: /ob did nothing', Math.hypot(after.x - before.x, after.z - before.z) < 1 && after.dim === before.dim)
     const roots = a.rootCommands.filter(c => /^(oneblock:)?(ob|oneblock)/.test(c))
     check('commands: /ob hidden from the client\'s command list', a.rootCommands.length > 0 && roots.length === 0, `${a.rootCommands.length} commands sent; OneBlock ones: ${JSON.stringify(roots)}`)
-    await s.run('lp user Ash permission set voidwell.oneblock-commands true', /Set|already/)
+    await s.run('lp user Ash permission set onevoid.oneblock-commands true', /Set|already/)
     await sleep(1000)
     const m2 = a.chatLog.length
     a.chat('/ob help')
     await sleep(1500)
     check('commands: an admin can still use /ob', !a.chatLog.slice(m2).some(l => /no commands here/.test(l)), a.chatLog.slice(m2).join(' | ').slice(0, 200))
-    await s.run('lp user Ash permission unset voidwell.oneblock-commands', /Unset|does not have/)
+    await s.run('lp user Ash permission unset onevoid.oneblock-commands', /Unset|does not have/)
     a.quit(); await sleep(1000)
   },
 
@@ -383,8 +383,8 @@ const tests = {
     await s.run('execute in minecraft:oneblock run tp Ash 0.5 101 0.5 0 0', /Teleported/)
     await sleep(800)
     // The menu: three choices, a click to choose and a second to confirm.
-    await s.run('voidwell offer Ash featherfall void-safe bountiful-block', /offered/)
-    let w = window(a); a.chat('/voidwell reward'); const menu = await w
+    await s.run('onevoid offer Ash featherfall void-safe bountiful-block', /offered/)
+    let w = window(a); a.chat('/onevoid reward'); const menu = await w
     const names = [11, 13, 15].map(i => JSON.stringify(menu.slots[i]?.customName ?? '').match(/"text":\{"type":"string","value":"([^"]+)"/g)?.map(x => x.split('"').at(-2)).join(' ') ?? '')
     check('payouts: menu offers three rewards', names.filter(Boolean).length === 3, names.join(' | ').slice(0, 200))
     await click(a, 11)
@@ -436,10 +436,10 @@ const tests = {
     await platform(true)
     // First the losing side. The odds go to 1 in 100 for this one take (the most the config allows), so it
     // loses 99 times in 100. A win here is reported as such, not as a pass.
-    const cfg = s.path('plugins/Voidwell/config.yml')
+    const cfg = s.path('plugins/OneVoid/config.yml')
     writeFileSync(cfg, readFileSync(cfg, 'utf8').replace('    one-in: 1\n', '    one-in: 100\n'))
-    await s.run('voidwell reload', /Voidwell/); await sleep(500)
-    await s.run('voidwell meter Ash 0', /meter is now/)
+    await s.run('onevoid reload', /OneVoid/); await sleep(500)
+    await s.run('onevoid meter Ash 0', /meter is now/)
     const lossBefore = count(a)
     await takeReward(a, 'void-gives-back')
     const lost = a.chatLog.some(l => /Not this time/.test(l))
@@ -449,7 +449,7 @@ const tests = {
       check('payouts: "not this time" starts the meter again 25% full', Math.abs(meterOf(a) - 25) < 0.01, `meter ${meterOf(a)}`)
     }
     writeFileSync(cfg, readFileSync(cfg, 'utf8').replace('    one-in: 100\n', '    one-in: 1\n'))
-    await s.run('voidwell reload', /Voidwell/); await sleep(500)
+    await s.run('onevoid reload', /OneVoid/); await sleep(500)
     // Then the winning side, with the same gear: after a loss it's still there for another try.
     const gearBefore = count(a)
     await takeReward(a, 'void-gives-back')
@@ -465,7 +465,7 @@ const tests = {
   async travelAndTeams() {
     const a = await bot('Ash'); const b = await bot('Birch'); const c = await bot('Cedar'); const d = await bot('Dell')
     for (const [n, circle] of [['Ash', 'kids'], ['Birch', 'kids'], ['Dell', 'kids'], ['Cedar', 'adults']])
-      await s.run(`lp user ${n} permission set houserules.circle.${circle} true`, /Set|already/)
+      await s.run(`lp user ${n} permission set mayor.circle.${circle} true`, /Set|already/)
     await sleep(1500)
     await home(a); await home(b); await home(c)
     await platform(true)
@@ -576,7 +576,7 @@ const tests = {
     check('teams: a kid in the same circle can be invited', di >= 0)
     if (di >= 0) await click(b, di)
     await heard(d, /Birch.*invites you/, 5000).then(() => check('teams: the invite arrives, with buttons', true)).catch(e => check('teams: the invite arrives, with buttons', false, e.message))
-    d.chat('/voidwell team accept Birch')
+    d.chat('/onevoid team accept Birch')
     await sleep(4000)
     pos = await where('Dell')
     check('teams: Dell joined Birch\'s island', pos.dim === 'minecraft:oneblock' && Math.hypot(pos.x - bPos.x, pos.z - bPos.z) < 20, JSON.stringify(pos))
@@ -652,15 +652,15 @@ const tests = {
     await s.run('execute in minecraft:oneblock run tp Ash 0.5 101 0.5 0 0', /Teleported/); await sleep(500)
     await a.toss(a.registry.itemsByName.netherite_sword.id, null, 1)
     await sleep(11000)
-    await s.run('voidwell offer Ash void-gives-back', /offered/)
-    const w = window(a); a.chat('/voidwell reward'); await w
+    await s.run('onevoid offer Ash void-gives-back', /offered/)
+    const w = window(a); a.chat('/onevoid reward'); await w
     await click(a, 11); await a.clickWindow(11, 0, 0)
     await sleep(150)
     await s.kill9(); await s.start(); await sleep(2000)
     a = await bot('Ash'); await sleep(1500)
     await home(a); await sleep(3000)
     const gear = a.inventory.items().filter(i => /sword|chestplate/.test(i.name)).length
-    const file = readFileSync(s.path(`plugins/Voidwell/players/${a.player.uuid}.yml`), 'utf8')
+    const file = readFileSync(s.path(`plugins/OneVoid/players/${a.player.uuid}.yml`), 'utf8')
     check('crash mid-payout: the returned gear arrives exactly once', gear === 1 && !/deliveries:\s*\n\s+\S/.test(file), `${gear} pieces; ${JSON.stringify(summary(a))}`)
     a.quit(); await sleep(1000)
   },
@@ -668,9 +668,9 @@ const tests = {
   async restarts() {
     let a = await bot('Ash')
     await home(a)
-    await s.run('voidwell meter Ash 40', /meter is now/)
+    await s.run('onevoid meter Ash 40', /meter is now/)
     await takeReward(a, 'featherfall').catch(() => {})
-    await s.run('voidwell meter Ash 40', /meter is now/)
+    await s.run('onevoid meter Ash 40', /meter is now/)
     const bell = await bellOf('Ash')
     a.quit(); await sleep(1000)
     await s.stop(); await s.start(); await sleep(2000)
@@ -744,7 +744,7 @@ const tests = {
     check('way bell: after a bell trip and back, a void death still respawns outside the gate', atLanding(died), JSON.stringify(died))
     await heard(a, /back at the Waystation/, 3000, m).then(() => check('way bell: and says so', true)).catch(e => check('way bell: and says so', false, e.message))
     // What the real server's rehearsal saw: something moves the player back onto the island right after the respawn.
-    // Played here by the console, within the first tick or two. Voidwell must still end with them at the gate.
+    // Played here by the console, within the first tick or two. OneVoid must still end with them at the gate.
     await s.run('execute in minecraft:oneblock run tp Ash 2.5 101 0.5', /Teleported/)
     const mark = s.mark()
     await s.run('execute in minecraft:oneblock run tp Ash 0.5 -75 0.5', /Teleported/)
@@ -752,10 +752,10 @@ const tests = {
     s.cmd('execute in minecraft:oneblock run tp Ash 2.5 101 0.5')
     await sleep(3000)
     const moved = await where('Ash')
-    check('way bell: if another plugin moves them back after the respawn, Voidwell still puts them at the gate', atLanding(moved), JSON.stringify(moved))
+    check('way bell: if another plugin moves them back after the respawn, OneVoid still puts them at the gate', atLanding(moved), JSON.stringify(moved))
     check('way bell: and the console says what happened', /Something moved Ash away from the Waystation's OneBlock gate after their respawn/.test(s.since(mark)))
     // What Multiverse-Inventories did on the real server's copy: right after the respawn, it put the player back on their
-    // last spot in the station, the step into the OneBlock gate. Voidwell puts them back at the landing, and Waystation
+    // last spot in the station, the step into the OneBlock gate. OneVoid puts them back at the landing, and Waystation
     // (0.7.0) won't fire a gate for someone a teleport put next to it until they've stepped clear.
     if (REAL_WAYSTATION && GATE) {
       const mark2 = s.mark()
@@ -765,7 +765,7 @@ const tests = {
       await sleep(4000)
       const after = await where('Ash')
       check('way bell: put on the step into the gate after the respawn, they end at the landing, not on the island', atLanding(after), JSON.stringify(after))
-      check('way bell: and the gate did not take them', !/minecraft:oneblock/.test(after.dim) && !s.since(mark2).includes('handed to Voidwell'), JSON.stringify(after))
+      check('way bell: and the gate did not take them', !/minecraft:oneblock/.test(after.dim) && !s.since(mark2).includes('handed to OneVoid'), JSON.stringify(after))
     }
     a.quit(); await sleep(1000)
   },
@@ -785,7 +785,7 @@ try {
 } finally {
   const errs = s ? s.errors() : []
   console.log('server errors:', errs.length ? '\n' + errs.slice(0, 15).join('\n') : 'none')
-  if (s && process.env.VOIDWELL_TEST_LOG) writeFileSync(process.env.VOIDWELL_TEST_LOG, s.log) // the console, for debugging
+  if (s && process.env.ONEVOID_TEST_LOG) writeFileSync(process.env.ONEVOID_TEST_LOG, s.log) // the console, for debugging
   if (s) { await s.stop(); s.remove() }
   const failed = results.filter(r => !r.ok)
   console.log(`\n${version}: ${results.length - failed.length} passed, ${failed.length} failed`)

@@ -12,7 +12,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Stands in for Waystation in Voidwell's live tests. The "station" is a stone pad in the main world.
+ * Stands in for Waystation in OneVoid's live tests. The "station" is a stone pad in the main world.
  * "/standin gate <player> <world>" plays the part of walking through that world's gate.
  * "/standin landing on|off" makes landing() answer or come back empty, to test the fallback.
  */

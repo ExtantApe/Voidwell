@@ -5,8 +5,8 @@ Bot tests on a throwaway Paper server on 127.0.0.1:25621. Each run makes a fresh
 ```bash
 npm install
 node fetch.mjs                 # Paper, OneBlock, Multiverse, LuckPerms, Via: each checked against its published hash
-gh release download v0.1.1 -R ExtantApe/HouseRules -p '*.jar' -D work/cache
-(cd .. && ./gradlew build)     # Voidwell and the Waystation stand-in
+gh release download v0.1.1 -R ExtantApe/Mayor -p '*.jar' -D work/cache
+(cd .. && ./gradlew build)     # OneVoid and the Waystation stand-in
 node suite.mjs 26.2            # everything
 node suite.mjs 26.2 payouts    # one test
 SERVER_ONLY=1 node suite.mjs 26.3   # checks without players
@@ -14,7 +14,7 @@ SERVER_ONLY=1 node suite.mjs 26.3   # checks without players
 
 The bots are mineflayer 26.1 clients. On 26.2 they connect through ViaVersion and ViaBackwards. Paper 26.3 disconnects them as soon as they join, so 26.3 gets the server-only checks.
 
-Set `VOIDWELL_WAYSTATION_JAR` to a real Waystation jar (0.4.0 or later, checked against its release's SHA-256) to test against it. The harness writes Waystation's own config with `oneblock: {hand-over: true}` and island posts off, puts its station world in the Lobby inventory group, and the bots walk through the real OneBlock gate. `VOIDWELL_TEST_LOG=<file>` keeps the server console after the run.
+Set `ONEVOID_WAYSTATION_JAR` to a real Waystation jar (0.4.0 or later, checked against its release's SHA-256) to test against it. The harness writes Waystation's own config with `oneblock: {hand-over: true}` and island posts off, puts its station world in the Lobby inventory group, and the bots walk through the real OneBlock gate. `ONEVOID_TEST_LOG=<file>` keeps the server console after the run.
 
 Without it, `test/standin` stands in for Waystation's hand-over event and landing service, with the same class names and signatures. `/standin gate <player> oneblock` plays the part of walking through the OneBlock gate, and the landing spot is a stone pad in the main world. It's never shipped.
 

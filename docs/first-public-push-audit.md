@@ -14,8 +14,8 @@ Done on 2026-11-09, before the repo goes public, as `~/Code/CLAUDE.md` asks for 
 | Server addresses | Every IPv4 address in history | Only `127.0.0.1`, the throwaway test servers |
 | Hosts and URLs | Every `.com` host in history | github.com, api.modrinth.com, example.com, anthropic.com (commit trailers), patreon.com (npm funding fields in `test/package-lock.json`) |
 | Email addresses | Every address in history | Only the GitHub noreply commit address and Claude's `noreply@anthropic.com` co-author trailer |
-| Personal names and paths | `mgilardi`, the owner's names, `/Users/` | Only in git's author field, which `CLAUDE.md` allows. No home paths |
-| Server, world and player names | The live servers' names and worlds, and the test players | None of the live names. Test worlds are `world`, `oneblock` and `waystation`, test players are made up (Ash, Birch, Cedar, Dell), and HouseRules circles in tests are `kids` and `adults` |
+| Personal names and paths | the owner's GitHub username, the owner's names, and home-folder paths | Only in git's author field, which `CLAUDE.md` allows. No home paths |
+| Server, world and player names | The live servers' names and worlds, and the test players | None of the live names. Test worlds are `world`, `oneblock` and `waystation`, test players are made up (Ash, Birch, Cedar, Dell), and Mayor circles in tests are `kids` and `adults` |
 | Build output | Every file ever committed | Source, tests, docs, scripts, workflows and the Gradle wrapper only. No jars, `build/`, `test/work/` or `node_modules/` |
 | Leak check in CI | `.github/workflows/build.yml` and `release.yml` | Both run `scripts/leak-check.sh` |
 | License | `LICENSE` | MIT, `Copyright (c) 2026 EXTANT APE` |
