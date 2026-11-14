@@ -43,6 +43,37 @@ public final class OneBlockBridge {
         return new Location(world(), xz[0], OneBlock.getY(), xz[1]);
     }
 
+    /** How many islands OneBlock has handed out, numbered from 0. */
+    public int islandCount() {
+        return PlayerInfo.list.size();
+    }
+
+    /**
+     * Every chunk an island's square covers, for Rewild: OneBlock's world is void, so a rewild there would erase islands
+     * the one block built. Empty unless this is OneBlock's world. Package-free math is in {@link #squareChunks}.
+     */
+    public java.util.List<long[]> islandChunks(World w) {
+        java.util.List<long[]> out = new java.util.ArrayList<>();
+        World ob = world();
+        if (ob == null || !ob.getUID().equals(w.getUID())) return out;
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        for (int i = 0; i < islandCount(); i++) {
+            int[] xz = OneBlock.plugin.getIslandCoordinates(i);
+            for (long[] c : squareChunks(xz[0], xz[1], spacing())) if (seen.add((c[0] << 32) ^ (c[1] & 0xffffffffL))) out.add(c);
+        }
+        return out;
+    }
+
+    /** The chunks of the square of side {@code spacing} centred on an island's one block. */
+    public static java.util.List<long[]> squareChunks(int x, int z, int spacing) {
+        int half = Math.max(16, spacing / 2);
+        java.util.List<long[]> out = new java.util.ArrayList<>();
+        for (int cx = (x - half) >> 4; cx <= (x + half) >> 4; cx++) {
+            for (int cz = (z - half) >> 4; cz <= (z + half) >> 4; cz++) out.add(new long[]{cx, cz});
+        }
+        return out;
+    }
+
     /** Distance between islands, in blocks. */
     public int spacing() {
         return Math.abs(OneBlock.getOffset());
