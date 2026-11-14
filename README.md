@@ -36,7 +36,7 @@ Paper 26.1 or later, Java 25. Waystation 0.4.0 or later and OneBlock 1.6.4 (plug
 
 With the server stopped:
 
-1. Copy `Voidwell-0.1.2.jar` to `plugins/`.
+1. Copy `Voidwell-0.1.3.jar` to `plugins/`.
 2. In OneBlock, turn off two settings that fight Voidwell: `/ob autojoin false` and `/ob rebirth_on_the_island false`. With autojoin on, OneBlock cancels the trip back to a player's bell.
 3. In Waystation, set the OneBlock world's gate to `hand-over: true` and turn island posts off (`island-posts.enabled: false`). The bell replaces them.
 4. Put the OneBlock world in its own Multiverse-Inventories group, and the Waystation's world in a group with the lobby, so a death in OneBlock is a plain OneBlock-to-lobby swap.
@@ -96,7 +96,7 @@ Not tested yet:
 ./gradlew build
 ```
 
-The jar is `build/libs/Voidwell-0.1.2.jar`. To run the bot tests: `cd test && npm install && node fetch.mjs && VOIDWELL_WAYSTATION_JAR=<path to Waystation-0.4.0.jar> node suite.mjs 26.2`. Without `VOIDWELL_WAYSTATION_JAR` they use a small stand-in for Waystation (`test/standin`) instead.
+The jar is `build/libs/Voidwell-0.1.3.jar`. To run the bot tests: `cd test && npm install && node fetch.mjs && VOIDWELL_WAYSTATION_JAR=<path to Waystation-0.4.0.jar> node suite.mjs 26.2`. Without `VOIDWELL_WAYSTATION_JAR` they use a small stand-in for Waystation (`test/standin`) instead.
 
 ## License
 
