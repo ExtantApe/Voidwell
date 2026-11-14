@@ -1,4 +1,4 @@
-# Voidwell settings. After editing, run /voidwell reload.
+# OneVoid settings. After editing, run /onevoid reload.
 config-version: 1
 
 # The way bell: how players leave their island for the Waystation.
@@ -59,8 +59,8 @@ rewards:
     enabled: true
     minutes: 5
 
-# Visiting other islands, and teams. Both need HouseRules circles: two players must share one.
-# If HouseRules has no circles, or either player is offline, the answer is no.
+# Visiting other islands, and teams. Both need Mayor circles: two players must share one.
+# If Mayor has no circles, or either player is offline, the answer is no.
 social:
   invite-seconds: 60
   # Most players on one island, the owner included.
@@ -68,7 +68,7 @@ social:
 
 # Saves after a death or a bell trip, so a crash can't roll a player back into a duplicate or a loss.
 # With Rewild installed, tells it to leave every OneBlock island alone. OneBlock's world is void, so a rewild there
-# would erase what the one block built. Rewild listens once an admin respects Voidwell with /rewild plugins.
+# would erase what the one block built. Rewild listens once an admin respects OneVoid with /rewild plugins.
 rewild:
   keep-islands: true
 

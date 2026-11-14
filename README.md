@@ -1,12 +1,12 @@
-# Voidwell
+# OneVoid
 
 A OneBlock add-on for Paper. Players walk into OneBlock through the Waystation, ring their island's bell to leave, and get something back for whatever they lose to the void.
 
-**Status:** 0.1.2. Its full bot suite passed 86/86 for 0.1.1 on a throwaway Paper 26.2 server, and 0.1.2's respawn, void-death and way-bell sections pass with Waystation 0.7.0; tested with OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and HouseRules 0.1.1. The bots walk through Waystation's real OneBlock gate. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
+**Status:** 0.2.0, a new name. Its full bot suite passed 86/86 for 0.1.1 on a throwaway Paper 26.2 server, and 0.1.2's respawn, void-death and way-bell sections pass with Waystation 0.7.0; tested with OneBlock 1.6.4, Multiverse-Core 5.8.2, Multiverse-Inventories 5.3.6, LuckPerms and Mayor 0.1.1. The bots walk through Waystation's real OneBlock gate. The bots are 26.1 clients connecting through ViaVersion. On Paper 26.3 it loads, sets up and reports no problems, but no bot could play there: 26.3 disconnects clients that come through ViaVersion ("Invalid move player packet"), even ones standing still. Nothing has been seen in a real game client yet. See [Tested](#tested) for the details.
 
 ## What it does
 
-**In and out.** The Waystation's OneBlock gate hands the player to Voidwell. The first time, OneBlock makes their island and they land on it with an empty OneBlock inventory. After that, they come back to the exact spot where they last rang their way bell. Players never type an `/ob` command.
+**In and out.** The Waystation's OneBlock gate hands the player to OneVoid. The first time, OneBlock makes their island and they land on it with an empty OneBlock inventory. After that, they come back to the exact spot where they last rang their way bell. Players never type an `/ob` command.
 
 **The way bell.** Every island gets a bell on a crying obsidian post, two blocks from the one block. It never replaces one of the player's blocks: if that spot is taken, the bell goes to the nearest free one. A label above it says what it's for. Ringing it three times within 6 seconds takes the player to the Waystation, outside the OneBlock gate. One ring does nothing. Two rings, or rings too far apart, do nothing. Rings closer together than 8 ticks don't count, so holding the button down rings it only slowly: holding it for about a second does count, which is still a deliberate act. Hitting it, explosions, projectiles, redstone and other players' rings don't count. Nobody can break it, move it or blow it up, operators included. Sneaking and ringing opens the island menu.
 
@@ -20,7 +20,7 @@ A OneBlock add-on for Paper. Players walk into OneBlock through the Waystation, 
 - **Void-safe:** for 2 minutes, falling into the void lifts the player back to their island with everything they carry.
 - **Bountiful block:** their one block drops double for 5 minutes.
 - **The void gives back:** a stated 1 in 3 chance that half of the weapons and armour they've given the void come back, each with one enchantment a level past the usual most (Sharpness VI, Protection V and so on). If not, the meter starts again 25% full and the gear stays for another try. Offered only when there's gear to give back.
-- **Island travel:** for 5 minutes, visit the islands of players who are online, share a HouseRules chat circle with them, and have turned visits on.
+- **Island travel:** for 5 minutes, visit the islands of players who are online, share a Mayor chat circle with them, and have turned visits on.
 
 Powers run in real time, survive a restart, and say when they end.
 
@@ -30,45 +30,45 @@ Powers run in real time, survive a restart, and say when they end.
 
 ## Needs
 
-Paper 26.1 or later, Java 25. Waystation 0.4.0 or later and OneBlock 1.6.4 (plugin name `Oneblock`) are required. Multiverse-Inventories keeps the OneBlock inventory in the OneBlock world. HouseRules circles are needed for travel and teams.
+Paper 26.1 or later, Java 25. Waystation 0.4.0 or later and OneBlock 1.6.4 (plugin name `Oneblock`) are required. Multiverse-Inventories keeps the OneBlock inventory in the OneBlock world. Mayor circles are needed for travel and teams.
 
 ## Install
 
 With the server stopped:
 
-1. Copy `Voidwell-0.1.3.jar` to `plugins/`.
-2. In OneBlock, turn off two settings that fight Voidwell: `/ob autojoin false` and `/ob rebirth_on_the_island false`. With autojoin on, OneBlock cancels the trip back to a player's bell.
+1. Copy `OneVoid-0.1.3.jar` to `plugins/`.
+2. In OneBlock, turn off two settings that fight OneVoid: `/ob autojoin false` and `/ob rebirth_on_the_island false`. With autojoin on, OneBlock cancels the trip back to a player's bell.
 3. In Waystation, set the OneBlock world's gate to `hand-over: true` and turn island posts off (`island-posts.enabled: false`). The bell replaces them.
 4. Put the OneBlock world in its own Multiverse-Inventories group, and the Waystation's world in a group with the lobby, so a death in OneBlock is a plain OneBlock-to-lobby swap.
-5. If Lantern Graves is installed, add the OneBlock world to its `disabled-worlds`. Otherwise it puts island deaths in graves. Voidwell takes void-death items before Lantern Graves sees them, so the two never both take the same items.
-6. Start the server and run `/voidwell status`. It lists anything still wrong.
+5. If Lantern Graves is installed, add the OneBlock world to its `disabled-worlds`. Otherwise it puts island deaths in graves. OneVoid takes void-death items before Lantern Graves sees them, so the two never both take the same items.
+6. Start the server and run `/onevoid status`. It lists anything still wrong.
 
-Players keep OneBlock's `oneblock.join` permission. Voidwell refuses a typed `/ob` and hides it from tab-complete, but runs OneBlock's commands for players when they need them.
+Players keep OneBlock's `oneblock.join` permission. OneVoid refuses a typed `/ob` and hides it from tab-complete, but runs OneBlock's commands for players when they need them.
 
 ## Commands
 
 | Command | Who | What |
 |---|---|---|
-| `/voidwell` | everyone | Your meter, or your reward choice when it's full |
-| `/voidwell reward` | everyone | The reward menu. The chat button uses it |
-| `/voidwell team accept/decline` | everyone | Used by the invite's chat buttons |
-| `/voidwell status` | admins | What's set up and what isn't |
-| `/voidwell reload` | admins | Reload `config.yml` |
-| `/voidwell meter <player> <points>` | admins | Set a meter, for support |
-| `/voidwell offer <player> <rewards…>` | admins | Offer particular rewards, for support and tests |
-| `/voidwell bell <player>` | admins | Put an island's bell back, or show where it is |
+| `/onevoid` | everyone | Your meter, or your reward choice when it's full |
+| `/onevoid reward` | everyone | The reward menu. The chat button uses it |
+| `/onevoid team accept/decline` | everyone | Used by the invite's chat buttons |
+| `/onevoid status` | admins | What's set up and what isn't |
+| `/onevoid reload` | admins | Reload `config.yml` |
+| `/onevoid meter <player> <points>` | admins | Set a meter, for support |
+| `/onevoid offer <player> <rewards…>` | admins | Offer particular rewards, for support and tests |
+| `/onevoid bell <player>` | admins | Put an island's bell back, or show where it is |
 
 ## Permissions
 
 | Node | Default | What |
 |---|---|---|
-| `voidwell.use` | everyone | `/voidwell`. The bell needs no permission |
-| `voidwell.admin` | op | Admin commands, and changing things on any island |
-| `voidwell.oneblock-commands` | op | Typing OneBlock's `/ob` commands |
+| `onevoid.use` | everyone | `/onevoid`. The bell needs no permission |
+| `onevoid.admin` | op | Admin commands, and changing things on any island |
+| `onevoid.oneblock-commands` | op | Typing OneBlock's `/ob` commands |
 
 ## Files
 
-`plugins/Voidwell/config.yml` holds the settings, with notes. `players/<uuid>.yml` holds each player's meter, rewards, powers and last bell spot. `islands.yml` records where each bell is. All of them are plain YAML. Each save writes a temporary file and renames it, so a crash leaves the old file or the new one, never half of each.
+`plugins/OneVoid/config.yml` holds the settings, with notes. `players/<uuid>.yml` holds each player's meter, rewards, powers and last bell spot. `islands.yml` records where each bell is. All of them are plain YAML. Each save writes a temporary file and renames it, so a crash leaves the old file or the new one, never half of each.
 
 ## Tested
 
@@ -88,7 +88,7 @@ Not tested yet:
 
 ## Troubleshooting
 
-- **A player respawns on their island after a OneBlock death.** Voidwell sets the respawn at the Waystation's OneBlock gate and checks half a second later that they're within a block of it. If another plugin has moved them, Voidwell puts them back and writes a console warning saying where they'd been moved. Multiverse-Inventories' `apply-last-location-for-all-teleports` is the known cause: it can restore the step into the gate. Use Waystation 0.7.0 or later too. To find any other cause, start the server with `-Dvoidwell.trace=true`: every teleport and respawn is then logged with the code that caused it. Leave it off otherwise.
+- **A player respawns on their island after a OneBlock death.** OneVoid sets the respawn at the Waystation's OneBlock gate and checks half a second later that they're within a block of it. If another plugin has moved them, OneVoid puts them back and writes a console warning saying where they'd been moved. Multiverse-Inventories' `apply-last-location-for-all-teleports` is the known cause: it can restore the step into the gate. Use Waystation 0.7.0 or later too. To find any other cause, start the server with `-Donevoid.trace=true`: every teleport and respawn is then logged with the code that caused it. Leave it off otherwise.
 
 ## Build
 
@@ -96,8 +96,8 @@ Not tested yet:
 ./gradlew build
 ```
 
-The jar is `build/libs/Voidwell-0.1.3.jar`. To run the bot tests: `cd test && npm install && node fetch.mjs && VOIDWELL_WAYSTATION_JAR=<path to Waystation-0.4.0.jar> node suite.mjs 26.2`. Without `VOIDWELL_WAYSTATION_JAR` they use a small stand-in for Waystation (`test/standin`) instead.
+The jar is `build/libs/OneVoid-0.1.3.jar`. To run the bot tests: `cd test && npm install && node fetch.mjs && ONEVOID_WAYSTATION_JAR=<path to Waystation-0.4.0.jar> node suite.mjs 26.2`. Without `ONEVOID_WAYSTATION_JAR` they use a small stand-in for Waystation (`test/standin`) instead.
 
 ## License
 
-MIT. See `LICENSE`. OneBlock is MrMarL's, also MIT. Voidwell calls it but includes none of its code.
+MIT. See `LICENSE`. OneBlock is MrMarL's, also MIT. OneVoid calls it but includes none of its code.

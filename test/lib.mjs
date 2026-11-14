@@ -8,13 +8,13 @@ import mineflayer from 'mineflayer'
 
 export const PORT = 25621
 export const CLIENT = '26.1'
-export const JAVA = process.env.VOIDWELL_TEST_JAVA ?? '/Library/Java/JavaVirtualMachines/openjdk-25.jdk/Contents/Home/bin/java'
+export const JAVA = process.env.ONEVOID_TEST_JAVA ?? '/Library/Java/JavaVirtualMachines/openjdk-25.jdk/Contents/Home/bin/java'
 export const ROOT = new URL('../', import.meta.url).pathname
 const CACHE = path.join(ROOT, 'test/work/cache')
 export const sleep = ms => new Promise(r => setTimeout(r, ms))
-// Set VOIDWELL_WAYSTATION_JAR to a real Waystation jar to test against it instead of the stand-in. Bots then walk
+// Set ONEVOID_WAYSTATION_JAR to a real Waystation jar to test against it instead of the stand-in. Bots then walk
 // through the station's real OneBlock gate.
-export const REAL_WAYSTATION = process.env.VOIDWELL_WAYSTATION_JAR ?? null
+export const REAL_WAYSTATION = process.env.ONEVOID_WAYSTATION_JAR ?? null
 /** Every bot made by bot(), by name, so helpers that get only a name can walk it through the gate. */
 export const bots = new Map()
 
@@ -25,9 +25,9 @@ function jar(dir, re) {
 }
 
 export class Server {
-  constructor(version, base = process.env.VOIDWELL_TEST_TMP ?? os.tmpdir()) {
+  constructor(version, base = process.env.ONEVOID_TEST_TMP ?? os.tmpdir()) {
     this.version = version
-    this.dir = path.join(base, `voidwell-live-${version}-${process.pid}`)
+    this.dir = path.join(base, `onevoid-live-${version}-${process.pid}`)
     this.log = ''
     this.proc = null
   }
@@ -38,13 +38,13 @@ export class Server {
   prepare({ config = {}, extraPlugins = [] } = {}) {
     const manifest = JSON.parse(readFileSync(path.join(CACHE, 'manifest.json'), 'utf8'))
     rmSync(this.dir, { recursive: true, force: true })
-    mkdirSync(this.path('plugins/Voidwell'), { recursive: true })
+    mkdirSync(this.path('plugins/OneVoid'), { recursive: true })
     copyFileSync(manifest.paper[this.version], this.path('paper.jar'))
     // Paper's downloaded libraries are kept between runs (not a server copy: no worlds or player data).
     const libs = path.join(CACHE, `libs-${this.version}`)
     if (existsSync(libs)) execSync(`cp -cR "${libs}/." "${this.dir}/"`)
     for (const p of [...manifest.plugins, ...manifest.via]) copyFileSync(p, this.path('plugins', path.basename(p)))
-    copyFileSync(jar(path.join(ROOT, 'build/libs'), /^Voidwell-.*\.jar$/), this.path('plugins/Voidwell.jar'))
+    copyFileSync(jar(path.join(ROOT, 'build/libs'), /^OneVoid-.*\.jar$/), this.path('plugins/OneVoid.jar'))
     if (REAL_WAYSTATION) {
       copyFileSync(REAL_WAYSTATION, this.path('plugins/Waystation.jar'))
       // Its own default config, with the OneBlock world handed over and island posts off, as the README says.
@@ -57,8 +57,8 @@ export class Server {
       mkdirSync(this.path('plugins/Waystation'), { recursive: true })
       writeFileSync(this.path('plugins/Waystation/config.yml'), ws)
     } else copyFileSync(jar(path.join(ROOT, 'test/standin/build/libs'), /^WaystationStandin.*\.jar$/), this.path('plugins/WaystationStandin.jar'))
-    // HouseRules 0.1.1, from its GitHub release (see fetch.mjs).
-    copyFileSync(path.join(CACHE, 'HouseRules-0.1.1.jar'), this.path('plugins/HouseRules.jar'))
+    // Mayor 0.1.1, from its GitHub release (see fetch.mjs).
+    copyFileSync(path.join(CACHE, 'Mayor-0.1.1.jar'), this.path('plugins/Mayor.jar'))
     for (const p of extraPlugins) copyFileSync(p, this.path('plugins', path.basename(p)))
     writeFileSync(this.path('eula.txt'), 'eula=true\n')
     writeFileSync(this.path('server.properties'), [
@@ -66,8 +66,8 @@ export class Server {
       'spawn-protection=0', 'enable-rcon=false', 'white-list=false', 'enforce-whitelist=false', 'enable-query=false', 'max-players=10', 'view-distance=4',
       'simulation-distance=4', 'gamemode=survival', 'difficulty=easy', 'spawn-monsters=false', 'allow-flight=true',
     ].join('\n') + '\n')
-    mkdirSync(this.path('plugins/HouseRules'), { recursive: true })
-    writeFileSync(this.path('plugins/HouseRules/config.yml'), 'config-version: 1\ncircles:\n  - kids\n  - adults\n')
+    mkdirSync(this.path('plugins/Mayor'), { recursive: true })
+    writeFileSync(this.path('plugins/Mayor/config.yml'), 'config-version: 1\ncircles:\n  - kids\n  - adults\n')
     // Test settings: short powers, so they can be seen ending.
     const vw = readFileSync(path.join(ROOT, 'src/main/resources/config.yml'), 'utf8')
     let text = vw
@@ -75,12 +75,12 @@ export class Server {
       if (!text.includes(from)) throw new Error(`config.yml has no "${from}"`)
       text = text.replace(from, to)
     }
-    writeFileSync(this.path('plugins/Voidwell/config.yml'), text)
+    writeFileSync(this.path('plugins/OneVoid/config.yml'), text)
   }
 
   async start(timeout = 240000) {
     this.log = ''
-    this.proc = spawn(JAVA, ['-Xms1G', '-Xmx2G', '-Dpaper.disableChannelLimit=true', ...(process.env.VOIDWELL_TRACE ? ['-Dvoidwell.trace=true'] : []), '-jar', 'paper.jar', '--nogui'], { cwd: this.dir })
+    this.proc = spawn(JAVA, ['-Xms1G', '-Xmx2G', '-Dpaper.disableChannelLimit=true', ...(process.env.ONEVOID_TRACE ? ['-Donevoid.trace=true'] : []), '-jar', 'paper.jar', '--nogui'], { cwd: this.dir })
     this.proc.stdout.on('data', d => { this.log += d.toString().replace(/\x1b\[[0-9;]*m/g, '') })
     this.proc.stderr.on('data', d => { this.log += d.toString() })
     this.exited = new Promise(r => this.proc.on('exit', r))
