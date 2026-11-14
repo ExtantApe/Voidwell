@@ -67,6 +67,11 @@ social:
   max-team-size: 4
 
 # Saves after a death or a bell trip, so a crash can't roll a player back into a duplicate or a loss.
+# With Rewild installed, tells it to leave every OneBlock island alone. OneBlock's world is void, so a rewild there
+# would erase what the one block built. Rewild listens once an admin respects Voidwell with /rewild plugins.
+rewild:
+  keep-islands: true
+
 crash-safety:
   # Also save the OneBlock world after a death on an island and after a trip out by the bell, so the world on disk
   # always matches the saved inventories. Without it, a crash could bring back items a player had already picked up.

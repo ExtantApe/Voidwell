@@ -70,6 +70,17 @@ public final class VoidwellPlugin extends JavaPlugin implements Listener {
                 new MenuListener(), new CommandGuard()))
             pm.registerEvents(l, this);
 
+        if (getConfig().getBoolean("rewild.keep-islands", true)) {
+            // OneBlock's world is void: a rewild there would erase every island the one block built.
+            RewildKeeps keeps = new RewildKeeps(this, w -> {
+                List<RewildKeeps.Chunk> out = new java.util.ArrayList<>();
+                for (long[] c : bridge.islandChunks(w)) out.add(new RewildKeeps.Chunk((int) c[0], (int) c[1], "a OneBlock island"));
+                return out;
+            }, w -> List.of());
+            pm.registerEvents(keeps, this);
+            keeps.start();
+        }
+
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, e ->
                 e.registrar().register(VoidwellCommand.build(this), "Your void meter and rewards", List.of()));
 
